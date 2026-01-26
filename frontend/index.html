@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gestão de Inventário</title>
+        <link rel="stylesheet" type="text/css" href="css/product.css">
+    </head>
+    <body>
+        <div class="container">
+        <h1>Gestão de Inventário</h1>
+        <table>
+  <thead>
+    <tr>
+      <th>Referência</th>
+      <th>Cor</th>
+      <th>X</th>
+      <th>Y</th>
+      <th>Rack</th>
+      <th>Acab</th>
+      <th>Obs</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody id="productTableBody"></tbody>
+</table>
+
+
+        <form id="productForm">
+  <p>Referência:</p><input type="text" id="referencia" placeholder="Referência" required />
+  <p>Cor:</p><input type="text" id="cor" placeholder="Cor" />
+  <p>Medida X</p><input type="number" id="x" placeholder="X" />
+  <p>Medida Y:</p><input type="number" id="y" placeholder="Y" />
+  <p>Rack</p><input type="text" id="rack" placeholder="Rack" />
+  <p>Acabamento:</p><input type="text" id="acab" placeholder="Acabamento" />
+  <p>Observações:</p><textarea id="obs" placeholder="Observações"></textarea>
+
+  <button type="submit">Add Product</button>
+</form>
+</div>
+
+        <script src="js/form.js"></script>
+    </body>
+</html>
