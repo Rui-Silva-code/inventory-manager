@@ -1,6 +1,41 @@
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
 import pool from "../db.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
+
+
+router.get("/", requireAuth, async (req, res) => {
+  // existing logic
+});
+
+router.post(
+  "/",
+  requireAuth,
+  requireRole("admin", "editor"),
+  async (req, res) => {
+    // existing logic
+  }
+);
+
+router.put(
+  "/:id",
+  requireAuth,
+  requireRole("admin", "editor"),
+  async (req, res) => {
+    // existing logic
+  }
+);
+
+router.delete(
+  "/:id",
+  requireAuth,
+  requireRole("admin"),
+  async (req, res) => {
+    // existing logic
+  }
+);
+
+
 
 const router = express.Router();
 
