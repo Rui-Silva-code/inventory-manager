@@ -76,6 +76,7 @@ router.post(
   }
 );
 
+
 /**
  * PUT /products/:id
  * Editor / Admin
@@ -138,6 +139,7 @@ router.put(
     }
   }
 );
+
 
 /**
  * DELETE /products/:id
