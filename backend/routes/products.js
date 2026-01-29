@@ -178,7 +178,7 @@ router.put(
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("admin"),
+  requireRole("admin", "editor"),
   async (req, res) => {
     const { id } = req.params;
 

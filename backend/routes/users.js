@@ -7,10 +7,10 @@ import { requireRole } from "../middleware/roles.js";
 
 const router = express.Router();
 
-/**
- * GET /users
- * Admin only – list users
- */
+/* ============================
+   GET /users
+   Admin only
+============================ */
 router.get(
   "/",
   requireAuth,
@@ -32,10 +32,10 @@ router.get(
   }
 );
 
-/**
- * POST /users
- * Admin only – create user
- */
+/* ============================
+   POST /users
+   Admin only (create user)
+============================ */
 router.post(
   "/",
   requireAuth,
@@ -47,20 +47,7 @@ router.post(
       return res.status(400).json({ error: "Missing fields" });
     }
 
-    if (!["viewer", "editor", "admin"].includes(role)) {
-      return res.status(400).json({ error: "Invalid role" });
-    }
-
     try {
-      const exists = await pool.query(
-        "SELECT id FROM users WHERE email = $1",
-        [email]
-      );
-
-      if (exists.rows.length > 0) {
-        return res.status(409).json({ error: "User already exists" });
-      }
-
       const passwordHash = await bcrypt.hash(password, 10);
 
       const result = await pool.query(
@@ -74,55 +61,80 @@ router.post(
 
       res.status(201).json(result.rows[0]);
     } catch (err) {
+      if (err.code === "23505") {
+        return res.status(409).json({ error: "Email already exists" });
+      }
       console.error(err);
       res.status(500).json({ error: "Failed to create user" });
     }
   }
 );
 
-/**
- * PUT /users/:id
- * Admin only – update role
- */
+/* ============================
+   PUT /users/:id/role
+   Admin only
+============================ */
 router.put(
-  "/:id",
+  "/:id/role",
   requireAuth,
   requireRole("admin"),
   async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
 
-    if (!["viewer", "editor", "admin"].includes(role)) {
-      return res.status(400).json({ error: "Invalid role" });
+    // ❌ Admin cannot change own role
+    if (id === req.user.id) {
+      return res
+        .status(403)
+        .json({ error: "You cannot change your own role" });
     }
 
     try {
+      // Check target user
+      const target = await pool.query(
+        "SELECT role FROM users WHERE id = $1",
+        [id]
+      );
+
+      if (target.rows.length === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // ❌ Prevent removing last admin
+      if (target.rows[0].role === "admin" && role !== "admin") {
+        const admins = await pool.query(
+          "SELECT COUNT(*) FROM users WHERE role = 'admin'"
+        );
+
+        if (Number(admins.rows[0].count) === 1) {
+          return res
+            .status(403)
+            .json({ error: "Cannot remove the last admin" });
+        }
+      }
+
       const result = await pool.query(
         `
         UPDATE users
         SET role = $1
         WHERE id = $2
-        RETURNING id, email, role
+        RETURNING id, email, role, created_at
         `,
         [role, id]
       );
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
       res.json(result.rows[0]);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: "Failed to update user" });
+      res.status(500).json({ error: "Failed to update role" });
     }
   }
 );
 
-/**
- * DELETE /users/:id
- * Admin only – delete user
- */
+/* ============================
+   DELETE /users/:id
+   Admin only
+============================ */
 router.delete(
   "/:id",
   requireAuth,
@@ -130,16 +142,37 @@ router.delete(
   async (req, res) => {
     const { id } = req.params;
 
+    // ❌ Admin cannot delete themselves
+    if (id === req.user.id) {
+      return res
+        .status(403)
+        .json({ error: "You cannot delete your own account" });
+    }
+
     try {
-      const result = await pool.query(
-        "DELETE FROM users WHERE id = $1 RETURNING id",
+      const target = await pool.query(
+        "SELECT role FROM users WHERE id = $1",
         [id]
       );
 
-      if (result.rows.length === 0) {
+      if (target.rows.length === 0) {
         return res.status(404).json({ error: "User not found" });
       }
 
+      // ❌ Prevent deleting last admin
+      if (target.rows[0].role === "admin") {
+        const admins = await pool.query(
+          "SELECT COUNT(*) FROM users WHERE role = 'admin'"
+        );
+
+        if (Number(admins.rows[0].count) === 1) {
+          return res
+            .status(403)
+            .json({ error: "Cannot delete the last admin" });
+        }
+      }
+
+      await pool.query("DELETE FROM users WHERE id = $1", [id]);
       res.json({ message: "User deleted" });
     } catch (err) {
       console.error(err);
