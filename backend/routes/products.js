@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import pool from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireRole } from "../middleware/roles.js";
+import { logAudit } from "../utils/auditLogger.js";
 
 const router = express.Router();
 
@@ -68,14 +69,24 @@ router.post(
         ]
       );
 
-      res.status(201).json(result.rows[0]);
+      const createdProduct = result.rows[0];
+
+      await logAudit({
+        user: req.user,
+        action: "CREATE",
+        entity: "product",
+        entityId: createdProduct.id,
+        beforeState: null,
+        afterState: createdProduct
+      });
+
+      res.status(201).json(createdProduct);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Failed to create product" });
     }
   }
 );
-
 
 /**
  * PUT /products/:id
@@ -99,6 +110,19 @@ router.put(
     } = req.body;
 
     try {
+      // 🔹 Fetch existing product (for audit log)
+      const existing = await pool.query(
+        "SELECT * FROM products WHERE id = $1",
+        [id]
+      );
+
+      if (existing.rows.length === 0) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+
+      const beforeProduct = existing.rows[0];
+
+      // 🔹 Update product
       const result = await pool.query(
         `
         UPDATE products
@@ -128,18 +152,24 @@ router.put(
         ]
       );
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "Product not found" });
-      }
+      const updatedProduct = result.rows[0];
 
-      res.json(result.rows[0]);
+      await logAudit({
+        user: req.user,
+        action: "UPDATE",
+        entity: "product",
+        entityId: id,
+        beforeState: beforeProduct,
+        afterState: updatedProduct
+      });
+
+      res.json(updatedProduct);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Failed to update product" });
     }
   }
 );
-
 
 /**
  * DELETE /products/:id
@@ -153,14 +183,32 @@ router.delete(
     const { id } = req.params;
 
     try {
-      const result = await pool.query(
-        "DELETE FROM products WHERE id = $1 RETURNING *",
+      // 🔹 Fetch existing product (for audit log)
+      const existing = await pool.query(
+        "SELECT * FROM products WHERE id = $1",
         [id]
       );
 
-      if (result.rows.length === 0) {
+      if (existing.rows.length === 0) {
         return res.status(404).json({ error: "Product not found" });
       }
+
+      const beforeProduct = existing.rows[0];
+
+      // 🔹 Delete product
+      await pool.query(
+        "DELETE FROM products WHERE id = $1",
+        [id]
+      );
+
+      await logAudit({
+        user: req.user,
+        action: "DELETE",
+        entity: "product",
+        entityId: id,
+        beforeState: beforeProduct,
+        afterState: null
+      });
 
       res.json({ message: "Product deleted" });
     } catch (err) {
