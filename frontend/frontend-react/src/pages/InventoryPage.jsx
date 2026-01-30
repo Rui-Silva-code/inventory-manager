@@ -1,15 +1,16 @@
-import PageLayout from "../layout/PageLayout";
-import TopBar from "../layout/TopBar";
+import PageLayout from "../components/layout/PageLayout.jsx";
+import TopBar from "../components/layout/TopBar.jsx";
 
-import ProductForm from "../components/inventory/ProductForm";
-import ProductFilters from "../components/inventory/ProductFilters";
-import ProductTable from "../components/inventory/ProductTable";
+import ProductForm from "../components/inventory/ProductForm.jsx";
+import ProductFilters from "../components/inventory/ProductFilters.jsx";
+import ProductTable from "../components/inventory/ProductTable.jsx";
 
-import AuditLogPanel from "../components/admin/AuditLogPanel";
-import AdminCreateUserPanel from "../components/AdminCreateUserPanel";
-import AdminUsersPanel from "../components/admin/AdminUsersPanel";
+import AuditLogPanel from "../components/admin/AuditLogPanel.jsx";
+import AdminCreateUserPanel from "../components/AdminCreateUserPanel.jsx";
+import AdminUsersPanel from "../components/admin/AdminUsersPanel.jsx";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext.js";
+
 
 export default function InventoryPage() {
   const { user, logout } = useAuth();
@@ -29,9 +30,25 @@ export default function InventoryPage() {
     >
       {canEdit && (
         <section className="panel">
-          <h2>Add Product</h2>
-          <ProductForm />
-        </section>
+  <ProductTable
+    products={[]}
+    filters={{
+      referencia: "",
+      cor: "",
+      rack: "",
+      acab: "",
+      x: "",
+      y: "",
+      onlyMarked: false
+    }}
+    setFilters={() => {}}
+    onUpdate={() => {}}
+    onDelete={() => {}}
+    canEdit={canEdit}
+    canDelete={canEdit}
+  />
+</section>
+
       )}
 
       <section className="panel">
@@ -49,3 +66,13 @@ export default function InventoryPage() {
     </PageLayout>
   );
 }
+<ProductForm
+  canEdit={canEdit}
+  onAdd={async (product) => {
+    // TEMP FIX until state lifting
+    console.warn("onAdd not wired yet", product);
+  }}
+/>
+
+
+

@@ -33,3 +33,17 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+import pool from "./db.js";
+
+(async () => {
+  try {
+    await pool.query("SELECT 1");
+    console.log("✅ Database connection OK");
+  } catch (err) {
+    console.error("❌ Database connection FAILED");
+    console.error(err.message);
+    process.exit(1); // stop server if DB is broken
+  }
+})();
+

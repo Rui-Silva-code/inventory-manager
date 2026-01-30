@@ -42,13 +42,19 @@ export function AuthProvider({ children }) {
     - Store token
     - Decode user
   */
-  async function login(email, password) {
-    const res = await api.post("/auth/login", { email, password });
+async function login(email, password) {
+  const res = await api.post("/auth/login", { email, password });
 
-    localStorage.setItem("token", res.data.token);
-    const decoded = jwtDecode(res.data.token);
-    setUser(decoded);
-  }
+  console.log("LOGIN RESPONSE:", res.data);
+
+  localStorage.setItem("token", res.data.token);
+  const decoded = jwtDecode(res.data.token);
+
+  console.log("DECODED USER:", decoded);
+
+  setUser(decoded);
+}
+
 
   /*
     Logout:

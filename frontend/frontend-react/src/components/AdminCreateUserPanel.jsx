@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { createUser } from "../api/users";
+import { createUser } from "../api/users.js";
+
 
 export default function AdminCreateUserPanel({ onClose }) {
   const [form, setForm] = useState({
