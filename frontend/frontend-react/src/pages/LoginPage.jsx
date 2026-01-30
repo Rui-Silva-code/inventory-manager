@@ -17,7 +17,16 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1>Inventory Manager</h1>
+        <div className="login-header">
+          {/* Replace src later with company logo */}
+          <img
+            src="/logo-placeholder.svg"
+            alt="Company Logo"
+            className="login-logo"
+          />
+          <h1>Inventory Manager</h1>
+        </div>
+
         <Login />
       </div>
     </div>

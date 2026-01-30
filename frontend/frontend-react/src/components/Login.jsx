@@ -20,9 +20,9 @@ export default function Login() {
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit}>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+   return (
+    <form onSubmit={handleSubmit} className="login-form">
+      {error && <p className="login-error">{error}</p>}
 
       <label>
         Email
@@ -44,7 +44,9 @@ export default function Login() {
         />
       </label>
 
-      <button type="submit">Login</button>
+      <button type="submit" className="btn primary">
+        Login
+      </button>
     </form>
   );
 }
