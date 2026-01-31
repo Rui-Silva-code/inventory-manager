@@ -24,7 +24,7 @@ export default function InventoryPage() {
 
   const isAdmin = user.role === "admin";
   const canEdit = user.role === "admin" || user.role === "editor";
-  const canDelete = user.role === "admin" || user.role === "editor";
+  const canDelete = canEdit;
 
   /* ============================
      STATE
@@ -41,12 +41,15 @@ export default function InventoryPage() {
     onlyMarked: false
   });
 
+  const [showAdd, setShowAdd] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
 
   /* ============================
-     LOAD PRODUCTS (ON MOUNT)
+     LOAD PRODUCTS
      ============================ */
   useEffect(() => {
     loadProducts();
@@ -92,22 +95,43 @@ export default function InventoryPage() {
         />
       }
     >
-      {/* ===== ADD PRODUCT ===== */}
-      {canEdit && (
+      {/* ===== TOGGLE BUTTONS ===== */}
+      <div className="panel-toggles">
+        {canEdit && (
+          <button
+            className={showAdd ? "active" : ""}
+            onClick={() => setShowAdd((v) => !v)}
+          >
+            Add Product ▾
+          </button>
+        )}
+
+        <button
+          className={showFilters ? "active" : ""}
+          onClick={() => setShowFilters((v) => !v)}
+        >
+          Filters ▾
+        </button>
+      </div>
+
+      {/* ===== ADD PRODUCT PANEL ===== */}
+      {showAdd && canEdit && (
         <section className="panel">
           <h2>Add Product</h2>
           <ProductForm onAdd={handleAdd} canEdit={canEdit} />
         </section>
       )}
 
-      {/* ===== FILTERS ===== */}
-      <section className="panel">
-        <h2>Filters</h2>
-        <ProductFilters
-          filters={filters}
-          setFilters={setFilters}
-        />
-      </section>
+      {/* ===== FILTERS PANEL ===== */}
+      {showFilters && (
+        <section className="panel">
+          <h2>Filters</h2>
+          <ProductFilters
+            filters={filters}
+            setFilters={setFilters}
+          />
+        </section>
+      )}
 
       {/* ===== TABLE ===== */}
       <section className="panel">
@@ -122,7 +146,7 @@ export default function InventoryPage() {
         />
       </section>
 
-      {/* ===== ADMIN PANELS (INLINE) ===== */}
+      {/* ===== ADMIN MODALS ===== */}
       {isAdmin && showAuditLog && (
         <AuditLogPanel onClose={() => setShowAuditLog(false)} />
       )}

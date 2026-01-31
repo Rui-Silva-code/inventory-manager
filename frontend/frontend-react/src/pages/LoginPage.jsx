@@ -20,7 +20,7 @@ export default function LoginPage() {
         <div className="login-header">
           {/* Replace src later with company logo */}
           <img
-            src="/logo-placeholder.svg"
+            src="logo/example-logo.png"
             alt="Company Logo"
             className="login-logo"
           />

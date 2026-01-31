@@ -4,12 +4,12 @@ const PAGE_SIZE = 50;
 
 /**
  * ProductTable
- * Displays inventory with filters, sorting, pagination and inline editing
+ * Displays inventory with sorting, pagination and inline editing
+ * Filters are controlled externally (InventoryPage)
  */
 export default function ProductTable({
   products,
   filters,
-  setFilters,
   onUpdate,
   onDelete,
   canEdit,
@@ -24,16 +24,6 @@ export default function ProductTable({
     direction: null // asc | desc | null
   });
 
-  const DEFAULT_FILTERS = {
-    referencia: "",
-    cor: "",
-    rack: "",
-    acab: "",
-    x: "",
-    y: "",
-    onlyMarked: false
-  };
-
   /* ============================
      RESET PAGE ON FILTER / SORT
      ============================ */
@@ -42,43 +32,7 @@ export default function ProductTable({
   }, [filters, sortConfig]);
 
   /* ============================
-     EDIT HANDLERS
-     ============================ */
-  function startEdit(product) {
-    setEditingId(product.id);
-    setEditForm({ ...product });
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditForm({});
-  }
-
-  async function saveEdit() {
-    await onUpdate(editingId, {
-      ...editForm,
-      x: Number(editForm.x),
-      y: Number(editForm.y)
-    });
-    setEditingId(null);
-  }
-
-  function handleEditChange(e) {
-    const { name, value, type, checked } = e.target;
-    setEditForm({
-      ...editForm,
-      [name]: type === "checkbox" ? checked : value
-    });
-  }
-
-  function handleDelete(id) {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      onDelete(id);
-    }
-  }
-
-  /* ============================
-     FILTERING
+     FILTERING (LOGIC ONLY)
      ============================ */
   const filteredProducts = products.filter((p) => {
     if (filters.referencia && !p.referencia?.includes(filters.referencia)) return false;
@@ -145,10 +99,39 @@ export default function ProductTable({
   );
 
   /* ============================
-     ACTIONS
+     EDIT HANDLERS
      ============================ */
-  function clearFilters() {
-    setFilters(DEFAULT_FILTERS);
+  function startEdit(product) {
+    setEditingId(product.id);
+    setEditForm({ ...product });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditForm({});
+  }
+
+  async function saveEdit() {
+    await onUpdate(editingId, {
+      ...editForm,
+      x: Number(editForm.x),
+      y: Number(editForm.y)
+    });
+    setEditingId(null);
+  }
+
+  function handleEditChange(e) {
+    const { name, value, type, checked } = e.target;
+    setEditForm({
+      ...editForm,
+      [name]: type === "checkbox" ? checked : value
+    });
+  }
+
+  function handleDelete(id) {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      onDelete(id);
+    }
   }
 
   function toggleMarked(product) {
@@ -160,87 +143,7 @@ export default function ProductTable({
      RENDER
      ============================ */
   return (
-    <div>
-      <h3>Filters</h3>
-
-      <label>
-        Reference
-        <input
-          value={filters.referencia}
-          onChange={(e) =>
-            setFilters({ ...filters, referencia: e.target.value })
-          }
-        />
-      </label>
-
-      <label>
-        Color
-        <input
-          value={filters.cor}
-          onChange={(e) =>
-            setFilters({ ...filters, cor: e.target.value })
-          }
-        />
-      </label>
-
-      <label>
-        Rack
-        <input
-          value={filters.rack}
-          onChange={(e) =>
-            setFilters({ ...filters, rack: e.target.value })
-          }
-        />
-      </label>
-
-      <label>
-        Acab
-        <input
-          value={filters.acab}
-          onChange={(e) =>
-            setFilters({ ...filters, acab: e.target.value })
-          }
-        />
-      </label>
-
-      <label>
-        Min X
-        <input
-          type="number"
-          value={filters.x}
-          onChange={(e) =>
-            setFilters({ ...filters, x: e.target.value })
-          }
-        />
-      </label>
-
-      <label>
-        Min Y
-        <input
-          type="number"
-          value={filters.y}
-          onChange={(e) =>
-            setFilters({ ...filters, y: e.target.value })
-          }
-        />
-      </label>
-
-      <label>
-        Only marked
-        <input
-          type="checkbox"
-          checked={filters.onlyMarked}
-          onChange={(e) =>
-            setFilters({ ...filters, onlyMarked: e.target.checked })
-          }
-        />
-      </label>
-
-      <button onClick={clearFilters}>Clear filters</button>
-
-      {/* ============================
-          TABLE
-         ============================ */}
+    <>
       <table border="1">
         <thead>
           <tr>
@@ -300,9 +203,7 @@ export default function ProductTable({
         </tbody>
       </table>
 
-      {/* ============================
-          PAGINATION CONTROLS
-         ============================ */}
+      {/* PAGINATION */}
       <div style={{ marginTop: 10 }}>
         <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
           Prev
@@ -319,6 +220,6 @@ export default function ProductTable({
           Next
         </button>
       </div>
-    </div>
+    </>
   );
 }

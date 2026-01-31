@@ -17,19 +17,22 @@
 .login-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 24px;
 }
 
 .login-logo {
-  width: 32px;
-  height: 32px;
+  width: 55px;
+  height: 55px;
+  flex-shrink: 0;
   object-fit: contain;
 }
 
 .login-header h1 {
   font-size: 20px;
+  font-weight: 600;
   margin: 0;
+  line-height: 1;
 }
 
 .login-form {

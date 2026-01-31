@@ -104,3 +104,21 @@ tr:hover {
   background: #fee2e2;
 }
 
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.company-logo {
+  height: 36px;
+  object-fit: contain;
+}
+
