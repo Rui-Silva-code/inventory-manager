@@ -21,75 +21,69 @@ export default function ProductFilters({ filters, setFilters }) {
   }
 
   return (
-    <div className="filters-grid">
-      <label>
-        Reference
-        <input
-          name="referencia"
-          value={filters.referencia}
-          onChange={handleChange}
-        />
-      </label>
+    <div>
+      <h2 style={{ marginBottom: 16 }}>Filters</h2>
 
-      <label>
-        Color
-        <input
-          name="cor"
-          value={filters.cor}
-          onChange={handleChange}
-        />
-      </label>
+      <div className="filters-grid">
+        <label>
+          Reference
+          <input
+            name="referencia"
+            value={filters.referencia}
+            onChange={handleChange}
+          />
+        </label>
 
-      <label>
-        Rack
-        <input
-          name="rack"
-          value={filters.rack}
-          onChange={handleChange}
-        />
-      </label>
+        <label>
+          Color
+          <input
+            name="cor"
+            value={filters.cor}
+            onChange={handleChange}
+          />
+        </label>
 
-      <label>
-        Acab
-        <input
-          name="acab"
-          value={filters.acab}
-          onChange={handleChange}
-        />
-      </label>
+        <label>
+          Rack
+          <input
+            name="rack"
+            value={filters.rack}
+            onChange={handleChange}
+          />
+        </label>
 
-      <label>
-        Min X
-        <input
-          type="number"
-          name="x"
-          value={filters.x}
-          onChange={handleChange}
-        />
-      </label>
+        <label>
+          Acab
+          <input
+            name="acab"
+            value={filters.acab}
+            onChange={handleChange}
+          />
+        </label>
 
-      <label>
-        Min Y
-        <input
-          type="number"
-          name="y"
-          value={filters.y}
-          onChange={handleChange}
-        />
-      </label>
+        <label>
+          Min X
+          <input
+            type="number"
+            name="x"
+            value={filters.x}
+            onChange={handleChange}
+          />
+        </label>
 
-      <label className="checkbox">
-        <input
-          type="checkbox"
-          name="onlyMarked"
-          checked={filters.onlyMarked}
-          onChange={handleChange}
-        />
-        Only marked
-      </label>
+        <label>
+          Min Y
+          <input
+            type="number"
+            name="y"
+            value={filters.y}
+            onChange={handleChange}
+          />
+        </label>
 
-      <div>
-        <button onClick={clearFilters}>Clear filters</button>
+        <div style={{ alignSelf: "end" }}>
+          <button onClick={clearFilters}>Clear filters</button>
+        </div>
       </div>
     </div>
   );

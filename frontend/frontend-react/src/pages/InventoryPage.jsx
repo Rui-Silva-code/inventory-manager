@@ -26,9 +26,6 @@ export default function InventoryPage() {
   const canEdit = user.role === "admin" || user.role === "editor";
   const canDelete = canEdit;
 
-  /* ============================
-     STATE
-     ============================ */
   const [products, setProducts] = useState([]);
 
   const [filters, setFilters] = useState({
@@ -48,9 +45,6 @@ export default function InventoryPage() {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
 
-  /* ============================
-     LOAD PRODUCTS
-     ============================ */
   useEffect(() => {
     loadProducts();
   }, []);
@@ -60,9 +54,6 @@ export default function InventoryPage() {
     setProducts(data);
   }
 
-  /* ============================
-     CRUD HANDLERS
-     ============================ */
   async function handleAdd(product) {
     await createProduct(product);
     loadProducts();
@@ -78,9 +69,6 @@ export default function InventoryPage() {
     loadProducts();
   }
 
-  /* ============================
-     RENDER
-     ============================ */
   return (
     <PageLayout
       title="Inventory Manager"
@@ -95,41 +83,45 @@ export default function InventoryPage() {
         />
       }
     >
-      {/* ===== TOGGLE BUTTONS ===== */}
+      {/* ===== CONTROL BUTTONS ===== */}
       <div className="panel-toggles">
         {canEdit && (
           <button
             className={showAdd ? "active" : ""}
-            onClick={() => setShowAdd((v) => !v)}
+            onClick={() => setShowAdd(v => !v)}
           >
-            Add Product ▾
+            Add Product
           </button>
         )}
 
         <button
           className={showFilters ? "active" : ""}
-          onClick={() => setShowFilters((v) => !v)}
+          onClick={() => setShowFilters(v => !v)}
         >
-          Filters ▾
+          Filters
+        </button>
+
+        <button
+          className={filters.onlyMarked ? "active" : ""}
+          onClick={() =>
+            setFilters(f => ({ ...f, onlyMarked: !f.onlyMarked }))
+          }
+        >
+          Marked
         </button>
       </div>
 
-      {/* ===== ADD PRODUCT PANEL ===== */}
+      {/* ===== ADD PRODUCT ===== */}
       {showAdd && canEdit && (
         <section className="panel">
-          <h2>Add Product</h2>
           <ProductForm onAdd={handleAdd} canEdit={canEdit} />
         </section>
       )}
 
-      {/* ===== FILTERS PANEL ===== */}
+      {/* ===== FILTERS ===== */}
       {showFilters && (
         <section className="panel">
-          <h2>Filters</h2>
-          <ProductFilters
-            filters={filters}
-            setFilters={setFilters}
-          />
+          <ProductFilters filters={filters} setFilters={setFilters} />
         </section>
       )}
 
@@ -138,7 +130,6 @@ export default function InventoryPage() {
         <ProductTable
           products={products}
           filters={filters}
-          setFilters={setFilters}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
           canEdit={canEdit}
