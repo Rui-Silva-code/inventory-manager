@@ -1,0 +1,119 @@
+/* =========================================================
+   EXCEL-LIKE TABLE STYLES (VISUAL ONLY)
+   ========================================================= */
+
+/* ===== TABLE WRAPPER ===== */
+.table-wrapper {
+  max-height: 65vh;
+  overflow-x: auto;
+  overflow-y: auto;
+  border: 2px solid #000;
+}
+
+/* ===== TABLE BASE ===== */
+table {
+  width: max-content;              /* allow horizontal expansion */
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+}
+
+/* ===== HEADER ===== */
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  background: #f3f4f6;              /* very light gray */
+  font-weight: 600;
+
+  border-bottom: 2px solid #000;    /* strong header separator */
+  border-right: 1px solid #000;     /* BLACK vertical separators */
+
+  padding: 0;
+  white-space: nowrap;
+}
+
+/* last header cell */
+thead th:last-child {
+  border-right: none;
+}
+
+/* ===== HEADER CONTENT ===== */
+.th-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.th-title {
+  white-space: nowrap;
+}
+
+/* sorting arrow (↕ ↑ ↓) */
+.sort-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.sort-btn:hover {
+  color: #000;
+}
+
+/* ===== COLUMN RESIZER ===== */
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+
+  width: 10px;                     /* thicker hit area */
+  height: 100%;
+
+  cursor: ew-resize;
+  user-select: none;
+}
+
+/* ===== BODY CELLS ===== */
+tbody td {
+  padding: 8px 10px;
+  white-space: nowrap;
+
+  border-right: 1px solid #cbd5e1;  /* light grid */
+  border-bottom: 1px solid #cbd5e1;
+}
+
+/* last column */
+tbody td:last-child {
+  border-right: none;
+}
+
+/* ===== ROW STATES ===== */
+tbody tr:hover {
+  background: inherit;             /* NO hover effect */
+}
+
+.row-marked {
+  background: #fca5a5;             /* light red */
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ===== PAGINATION ===== */
+.pagination {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}

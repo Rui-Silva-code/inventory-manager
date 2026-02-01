@@ -141,7 +141,7 @@ export default function InventoryPage() {
          ADD PRODUCT PANEL
          ===================================================== */}
       {showAdd && canEdit && (
-        <section className="panel">
+        <section className="panel add-product">
           <ProductForm onAdd={handleAdd} canEdit={canEdit} />
         </section>
       )}

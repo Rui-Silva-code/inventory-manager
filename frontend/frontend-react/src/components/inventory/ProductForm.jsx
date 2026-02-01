@@ -1,9 +1,5 @@
 import { useState } from "react";
 
-/**
- * ProductForm
- * Creates new inventory rows
- */
 export default function ProductForm({ onAdd, canEdit }) {
   const [form, setForm] = useState({
     referencia: "",
@@ -20,16 +16,21 @@ export default function ProductForm({ onAdd, canEdit }) {
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
-    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+    setForm({
+      ...form,
+      [name]: type === "checkbox" ? checked : value
+    });
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     await onAdd({
       ...form,
       x: Number(form.x),
       y: Number(form.y)
     });
+
     setForm({
       referencia: "",
       cor: "",
@@ -42,98 +43,99 @@ export default function ProductForm({ onAdd, canEdit }) {
     });
   }
 
-
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>Add Product</h3>
-
+    <form onSubmit={handleSubmit} className="form-grid">
+      {/* Reference */}
       <label>
         Reference
         <input
           name="referencia"
-          placeholder="Reference"
           value={form.referencia}
           onChange={handleChange}
           required
         />
       </label>
 
+      {/* Color */}
       <label>
         Color
         <input
           name="cor"
-          placeholder="Color"
           value={form.cor}
           onChange={handleChange}
           required
         />
       </label>
 
-      <label>
-        X
-        <input
-          name="x"
-          type="number"
-          placeholder="X"
-          value={form.x}
-          onChange={handleChange}
-          required
-        />
-      </label>
+      {/* X / Y compact row */}
+      <div className="form-row">
+        <label>
+          X
+          <input
+            type="number"
+            name="x"
+            value={form.x}
+            onChange={handleChange}
+            required
+          />
+        </label>
 
-      <label>
-        Y
-        <input
-          name="y"
-          type="number"
-          placeholder="Y"
-          value={form.y}
-          onChange={handleChange}
-          required
-        />
-      </label>
+        <label>
+          Y
+          <input
+            type="number"
+            name="y"
+            value={form.y}
+            onChange={handleChange}
+            required
+          />
+        </label>
+      </div>
 
+      {/* Rack */}
       <label>
         Rack
         <input
           name="rack"
-          placeholder="Rack"
           value={form.rack}
           onChange={handleChange}
         />
       </label>
 
+      {/* Acab */}
       <label>
-        Acabamento
+        Acab
         <input
           name="acab"
-          placeholder="Acabamento"
           value={form.acab}
           onChange={handleChange}
         />
       </label>
 
-      <label>
+      {/* Obs */}
+      <label className="full">
         Obs
         <input
           name="obs"
-          placeholder="Obs"
           value={form.obs}
           onChange={handleChange}
         />
       </label>
 
-      <label>
-        Marked
-        <input
-          type="checkbox"
-          name="marked"
-          checked={form.marked}
-          onChange={handleChange}
-        />
-      </label>
+      {/* Marked + Submit */}
+      <div className="form-footer">
+        <label className="checkbox">
+           Marked
+          <input
+            type="checkbox"
+            name="marked"
+            checked={form.marked}
+            onChange={handleChange}
+          />
+        </label>
 
-      <button type="submit">Create</button>
+        <button type="submit">Create</button>
+      </div>
     </form>
   );
 }

@@ -1,19 +1,19 @@
 :root {
   --bg: #f8fafc;
   --card: #ffffff;
-  --border: #d0d7de;
+
+  /* Grid colors */
+  --border-strong: #000000;
+  --border-light: #cbd5e1;
+
   --text: #1f2937;
   --muted: #6b7280;
 
   --primary: #2563eb;
   --danger: #dc2626;
-  --success: #16a34a;
-  --warning: #eab308;
 }
 
-/* =========================
-   RESET
-   ========================= */
+/* ===== RESET ===== */
 * {
   box-sizing: border-box;
 }
@@ -24,22 +24,22 @@ body {
     Roboto, Inter, sans-serif;
   background: var(--bg);
   color: var(--text);
+  overflow: auto; /* PAGE SCROLL ENABLED */
 }
 
-/* =========================
-   PAGE LAYOUT
-   ========================= */
+/* ===== PAGE ===== */
 .page {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
 }
 
+/* ===== TOP BAR ===== */
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .top-left {
@@ -50,77 +50,80 @@ body {
 
 .company-logo {
   height: 36px;
-  object-fit: contain;
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
-}
-
-/* =========================
-   BUTTONS
-   ========================= */
-.btn,
+/* ===== BUTTONS ===== */
 button {
   padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   background: white;
   cursor: pointer;
-  font: inherit;
 }
 
-.btn:hover,
-button:hover {
-  background: #f1f5f9;
-}
-
-.btn.primary {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-
-.btn.danger {
-  background: var(--danger);
-  color: white;
-  border-color: var(--danger);
-}
-
-.btn:disabled,
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* =========================
-   TABLE WRAPPER
-   ========================= */
-.table-wrapper {
-  max-height: 65vh;
-  overflow: auto;
+/* ===== CONTROL ROW ===== */
+.panel-toggles {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-/* =========================
-   TABLE BASE (EXCEL DNA)
-   ========================= */
+.panel-toggles .left,
+.panel-toggles .right {
+  display: flex;
+  gap: 8px;
+}
+
+.panel-toggles button.active {
+  background: #e5e7eb;
+  font-weight: 600;
+}
+
+/* ===== PANELS ===== */
+.panel {
+  border: 1px solid var(--border-strong);
+  background: white;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+/* ===== TABLE WRAPPER ===== */
+.table-wrapper {
+  max-height: 65vh;
+  overflow: auto; /* X + Y scroll */
+  border: 1px solid var(--border-strong);
+}
+
+/* ===== TABLE (EXCEL STYLE) ===== */
 table {
-  width: 100%;
-  border-collapse: separate; /* IMPORTANT for Excel grid */
+  border-collapse: separate;
   border-spacing: 0;
   background: var(--card);
+  min-width: max-content;
 }
 
 th,
 td {
   padding: 8px 10px;
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
   text-align: left;
-  vertical-align: middle;
+  white-space: nowrap;
+}
 
-  /* Excel grid */
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+th {
+  background: #f1f5f9;
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-strong);
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 th:last-child,
@@ -128,111 +131,45 @@ td:last-child {
   border-right: none;
 }
 
-/* =========================
-   TABLE HEADER
-   ========================= */
-th {
-  background: #f1f5f9;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-
-  /* Header itself is NOT clickable */
-  cursor: default;
-  padding: 0;
-}
-
-/* =========================
-   HEADER CONTENT
-   ========================= */
+/* ===== HEADER CONTENT ===== */
 .th-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
   gap: 6px;
-  position: relative;
 }
 
-.th-title {
-  white-space: nowrap;
-}
-
-/* Sorting arrow (↕ ↓ ↑) */
+/* SORT ARROW */
 .sort-btn {
-  border: none;
   background: transparent;
+  border: none;
   cursor: pointer;
-  user-select: none;
   font-size: 14px;
-  line-height: 1;
-  padding: 0;
 }
 
-.sort-btn:hover {
-  color: var(--primary);
- 
-}
-
-/* Sorting indicator (↕ ↓ ↑) */
-.sort-indicator {
-  cursor: pointer;
-  user-select: none;
-  line-height: 1;
-}
-
-.sort-indicator:hover {
-  color: var(--primary);
-}
-
-
-/* =========================
-   COLUMN RESIZER (↔)
-   ========================= */
+/* COLUMN RESIZER */
 .col-resizer {
   position: absolute;
+  right: -4px;
   top: 0;
-  right: -4px; /* slightly overlaps border for easier hit */
-  width: 10px; /* thicker hit area */
+  width: 8px; /* thicker = easier grab */
   height: 100%;
   cursor: ew-resize;
-  user-select: none;
 }
 
-/* =========================
-   ROW BEHAVIOR
-   ========================= */
-
-/* Marked rows */
+/* ===== ROW STATES ===== */
 .row-marked {
-  background: #f8b4b4;
+  background: #fca5a5;
 }
 
-/* =========================
-   INLINE EDIT
-   ========================= */
-.inline-edit {
-  font: inherit;
-  padding: 2px 4px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: white;
-  min-width: 2ch;
-}
 
-/* =========================
-   ACTION BUTTONS
-   ========================= */
+/* ===== ACTION BUTTONS ===== */
 .action-buttons {
   display: flex;
   gap: 8px;
-  align-items: center;
 }
 
-/* =========================
-   PAGINATION
-   ========================= */
+/* ===== PAGINATION ===== */
 .pagination {
   margin-top: 12px;
   display: flex;
@@ -240,67 +177,35 @@ th {
   align-items: center;
 }
 
-/* =========================
-   AUDIT LOG COLORS
-   ========================= */
-.audit-create {
-  background: #dcfce7;
-}
-
-.audit-update {
-  background: #fef9c3;
-}
-
-.audit-delete {
-  background: #fee2e2;
-}
-
-/* =========================
-   MODALS (Excel-style windows)
-   ========================= */
-
+/* ===== MODAL ===== */
 .modal-root {
   position: fixed;
   inset: 0;
-  pointer-events: none; /* allow background to exist visually */
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
 .modal-window {
-  pointer-events: auto;
-  margin: 80px auto 0;
   background: white;
-  border: 1px solid var(--border);
-  max-height: calc(100vh - 120px);
+  width: 900px; /* A: SAME WIDTH FOR ALL */
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
+  border: 2px solid var(--border-strong);
 }
 
 .modal-header {
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--border-strong);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  background: #f8fafc;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.modal-close {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 2px 6px;
 }
 
 .modal-body {
-  padding: 12px;
+  padding: 14px;
   overflow: auto;
 }
-
