@@ -5,6 +5,7 @@ import {
   deleteUser
 } from "../../api/users";
 import { useAuth } from "../../context/AuthContext";
+import Modal from "../common/Modal";
 
 export default function AdminUsersPanel({ onClose }) {
   const { user: currentUser } = useAuth();
@@ -12,8 +13,6 @@ export default function AdminUsersPanel({ onClose }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Track pending role changes
   const [pendingRoles, setPendingRoles] = useState({});
 
   useEffect(() => {
@@ -43,13 +42,11 @@ export default function AdminUsersPanel({ onClose }) {
     if (!newRole) return;
 
     await updateUserRole(userId, newRole);
-
     setPendingRoles((prev) => {
       const copy = { ...prev };
       delete copy[userId];
       return copy;
     });
-
     loadUsers();
   }
 
@@ -65,15 +62,8 @@ export default function AdminUsersPanel({ onClose }) {
   const adminCount = users.filter((u) => u.role === "admin").length;
 
   return (
-    <div style={{ border: "1px solid #ccc", padding: "12px", marginTop: "20px" }}>
-      <h3>
-        User Management{" "}
-        <button onClick={onClose} style={{ marginLeft: "10px" }}>
-          Close
-        </button>
-      </h3>
-
-      <table border="1" width="100%">
+    <Modal title="Users" width={900} onClose={onClose}>
+      <table width="100%">
         <thead>
           <tr>
             <th>Email</th>
@@ -87,21 +77,16 @@ export default function AdminUsersPanel({ onClose }) {
         <tbody>
           {users.map((u) => {
             const pendingRole = pendingRoles[u.id];
-
             const isSelf = u.id === currentUser.id;
             const isLastAdmin = u.role === "admin" && adminCount === 1;
-
-            const roleChangeDisabled = isSelf;
-            const deleteDisabled = isSelf || isLastAdmin;
 
             return (
               <tr key={u.id}>
                 <td>{u.email}</td>
-
                 <td>
                   <select
                     value={pendingRole ?? u.role}
-                    disabled={roleChangeDisabled}
+                    disabled={isSelf}
                     onChange={(e) =>
                       handleRoleSelect(u.id, e.target.value)
                     }
@@ -113,7 +98,7 @@ export default function AdminUsersPanel({ onClose }) {
                 </td>
 
                 <td>
-                  {!roleChangeDisabled &&
+                  {!isSelf &&
                     pendingRole &&
                     pendingRole !== u.role && (
                       <button onClick={() => confirmRoleChange(u.id)}>
@@ -126,14 +111,7 @@ export default function AdminUsersPanel({ onClose }) {
 
                 <td>
                   <button
-                    disabled={deleteDisabled}
-                    title={
-                      isSelf
-                        ? "You cannot delete your own account"
-                        : isLastAdmin
-                        ? "Cannot delete the last admin"
-                        : ""
-                    }
+                    disabled={isSelf || isLastAdmin}
                     onClick={() => handleDelete(u.id)}
                   >
                     Delete
@@ -144,6 +122,6 @@ export default function AdminUsersPanel({ onClose }) {
           })}
         </tbody>
       </table>
-    </div>
+    </Modal>
   );
 }

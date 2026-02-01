@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAuditLogs } from "../../api/auditLogs";
-
+import Modal from "../common/Modal";
 
 const PAGE_SIZE = 10;
 
@@ -83,18 +83,11 @@ export default function AuditLogPanel({ onClose }) {
   if (error) return <p>{error}</p>;
 
   return (
-    <div style={{ marginTop: 20 }}>
-      <h3>
-        Audit Log{" "}
-        <button onClick={onClose} style={{ marginLeft: 10 }}>
-          Close
-        </button>
-      </h3>
-
+    <Modal title="Audit Log" width={1200} onClose={onClose}>
       {/* ===== CALENDAR FILTER ===== */}
-      <div style={{ marginBottom: 10 }}>
+      <div style={{ marginBottom: 12 }}>
         <label>
-          Day:{" "}
+          Day{" "}
           <input
             type="date"
             value={selectedDate}
@@ -107,7 +100,7 @@ export default function AuditLogPanel({ onClose }) {
       </div>
 
       {/* ===== TABLE ===== */}
-      <table border="1" width="100%">
+      <table width="100%">
         <thead>
           <tr>
             <th>Date</th>
@@ -117,7 +110,7 @@ export default function AuditLogPanel({ onClose }) {
             <th>Ref</th>
             <th>X</th>
             <th>Y</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
 
@@ -130,7 +123,6 @@ export default function AuditLogPanel({ onClose }) {
 
             return (
               <>
-                {/* ===== SUMMARY ROW ===== */}
                 <tr
                   key={log.id}
                   style={{ backgroundColor: rowColor(log.action) }}
@@ -149,18 +141,13 @@ export default function AuditLogPanel({ onClose }) {
                   </td>
                 </tr>
 
-                {/* ===== DETAILS ===== */}
                 {isOpen && (
-                  <tr
-                    key={`${log.id}-details`}
-                    style={{ backgroundColor: rowColor(log.action) }}
-                  >
+                  <tr key={`${log.id}-details`}>
                     <td colSpan={8}>
-                      {/* ===== UPDATE: BEFORE / AFTER ===== */}
                       {log.action === "UPDATE" && (
                         <>
                           <b>BEFORE</b>
-                          <table border="1" width="100%" style={{ marginBottom: 10 }}>
+                          <table width="100%" style={{ marginBottom: 10 }}>
                             <thead>
                               <tr>
                                 {FIELDS.map((f) => (
@@ -178,7 +165,7 @@ export default function AuditLogPanel({ onClose }) {
                           </table>
 
                           <b>AFTER</b>
-                          <table border="1" width="100%">
+                          <table width="100%">
                             <thead>
                               <tr>
                                 {FIELDS.map((f) => (
@@ -210,11 +197,10 @@ export default function AuditLogPanel({ onClose }) {
                         </>
                       )}
 
-                      {/* ===== CREATE ===== */}
                       {log.action === "CREATE" && (
                         <>
                           <b>Created product</b>
-                          <table border="1" width="100%">
+                          <table width="100%">
                             <thead>
                               <tr>
                                 {FIELDS.map((f) => (
@@ -225,9 +211,7 @@ export default function AuditLogPanel({ onClose }) {
                             <tbody>
                               <tr>
                                 {FIELDS.map((f) => (
-                                  <td key={f}>
-                                    {String(after?.[f] ?? "")}
-                                  </td>
+                                  <td key={f}>{String(after?.[f] ?? "")}</td>
                                 ))}
                               </tr>
                             </tbody>
@@ -235,11 +219,10 @@ export default function AuditLogPanel({ onClose }) {
                         </>
                       )}
 
-                      {/* ===== DELETE ===== */}
                       {log.action === "DELETE" && (
                         <>
                           <b>Deleted product</b>
-                          <table border="1" width="100%">
+                          <table width="100%">
                             <thead>
                               <tr>
                                 {FIELDS.map((f) => (
@@ -250,9 +233,7 @@ export default function AuditLogPanel({ onClose }) {
                             <tbody>
                               <tr>
                                 {FIELDS.map((f) => (
-                                  <td key={f}>
-                                    {String(before?.[f] ?? "")}
-                                  </td>
+                                  <td key={f}>{String(before?.[f] ?? "")}</td>
                                 ))}
                               </tr>
                             </tbody>
@@ -269,18 +250,13 @@ export default function AuditLogPanel({ onClose }) {
       </table>
 
       {/* ===== PAGINATION ===== */}
-      <div style={{ marginTop: 10 }}>
-        <button
-          disabled={page === 1}
-          onClick={() => setPage((p) => p - 1)}
-        >
+      <div className="pagination">
+        <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
           Prev
         </button>
-
-        <span style={{ margin: "0 10px" }}>
+        <span>
           Page {page} / {totalPages || 1}
         </span>
-
         <button
           disabled={page === totalPages}
           onClick={() => setPage((p) => p + 1)}
@@ -288,6 +264,6 @@ export default function AuditLogPanel({ onClose }) {
           Next
         </button>
       </div>
-    </div>
+    </Modal>
   );
 }

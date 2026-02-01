@@ -76,56 +76,88 @@ export default function InventoryPage() {
         <TopBar
           user={user}
           onLogout={logout}
-          onAuditLog={() => setShowAuditLog(true)}
-          onCreateUser={() => setShowCreateUser(true)}
-          onUsers={() => setShowUsers(true)}
           isAdmin={isAdmin}
         />
       }
     >
-      {/* ===== CONTROL BUTTONS ===== */}
-      <div className="panel-toggles">
-        {canEdit && (
+      {/* =====================================================
+         TOP CONTROL BAR (MUST BE ABOVE EVERYTHING)
+         ===================================================== */}
+      <div
+        className="panel-toggles"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}
+      >
+        {/* LEFT — INVENTORY CONTROLS */}
+        <div style={{ display: "flex", gap: 8 }}>
+          {canEdit && (
+            <button
+              className={showAdd ? "active" : ""}
+              onClick={() => setShowAdd(v => !v)}
+            >
+              Add Product
+            </button>
+          )}
+
           <button
-            className={showAdd ? "active" : ""}
-            onClick={() => setShowAdd(v => !v)}
+            className={showFilters ? "active" : ""}
+            onClick={() => setShowFilters(v => !v)}
           >
-            Add Product
+            Filters
           </button>
+
+          <button
+            className={filters.onlyMarked ? "active" : ""}
+            onClick={() =>
+              setFilters(f => ({ ...f, onlyMarked: !f.onlyMarked }))
+            }
+          >
+            Marked
+          </button>
+        </div>
+
+        {/* RIGHT — ADMIN CONTROLS */}
+        {isAdmin && (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setShowCreateUser(true)}>
+              Create User
+            </button>
+
+            <button onClick={() => setShowUsers(true)}>
+              Users
+            </button>
+
+            <button onClick={() => setShowAuditLog(true)}>
+              Audit Log
+            </button>
+          </div>
         )}
-
-        <button
-          className={showFilters ? "active" : ""}
-          onClick={() => setShowFilters(v => !v)}
-        >
-          Filters
-        </button>
-
-        <button
-          className={filters.onlyMarked ? "active" : ""}
-          onClick={() =>
-            setFilters(f => ({ ...f, onlyMarked: !f.onlyMarked }))
-          }
-        >
-          Marked
-        </button>
       </div>
 
-      {/* ===== ADD PRODUCT ===== */}
+      {/* =====================================================
+         ADD PRODUCT PANEL
+         ===================================================== */}
       {showAdd && canEdit && (
         <section className="panel">
           <ProductForm onAdd={handleAdd} canEdit={canEdit} />
         </section>
       )}
 
-      {/* ===== FILTERS ===== */}
+      {/* =====================================================
+         FILTERS PANEL
+         ===================================================== */}
       {showFilters && (
         <section className="panel">
           <ProductFilters filters={filters} setFilters={setFilters} />
         </section>
       )}
 
-      {/* ===== TABLE ===== */}
+      {/* =====================================================
+         TABLE
+         ===================================================== */}
       <section className="panel">
         <ProductTable
           products={products}
@@ -137,17 +169,19 @@ export default function InventoryPage() {
         />
       </section>
 
-      {/* ===== ADMIN MODALS ===== */}
+      {/* =====================================================
+         ADMIN PANELS / MODALS
+         ===================================================== */}
       {isAdmin && showAuditLog && (
         <AuditLogPanel onClose={() => setShowAuditLog(false)} />
       )}
 
-      {isAdmin && showCreateUser && (
-        <AdminCreateUserPanel onClose={() => setShowCreateUser(false)} />
-      )}
-
       {isAdmin && showUsers && (
         <AdminUsersPanel onClose={() => setShowUsers(false)} />
+      )}
+
+      {isAdmin && showCreateUser && (
+        <AdminCreateUserPanel onClose={() => setShowCreateUser(false)} />
       )}
     </PageLayout>
   );

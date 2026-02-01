@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createUser } from "../api/users.js";
-
+import Modal from "../components/common/Modal";
 
 export default function AdminCreateUserPanel({ onClose }) {
   const [form, setForm] = useState({
@@ -32,7 +32,7 @@ export default function AdminCreateUserPanel({ onClose }) {
         password: "",
         role: "viewer"
       });
-    } catch (err) {
+    } catch {
       setError("Failed to create user");
     } finally {
       setLoading(false);
@@ -40,63 +40,50 @@ export default function AdminCreateUserPanel({ onClose }) {
   }
 
   return (
-    <div style={{ border: "1px solid #ccc", padding: "12px", marginTop: "20px" }}>
-      <h3>
-        Create User{" "}
-        <button onClick={onClose} style={{ marginLeft: "10px" }}>
-          Close
-        </button>
-      </h3>
-
+    <Modal title="Create User" width={460} onClose={onClose}>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>
-            Email<br />
-            <input
-              name="email"
-              type="email"
-              required
-              value={form.email}
-              onChange={handleChange}
-            />
-          </label>
-        </div>
+        <label>
+          Email
+          <input
+            name="email"
+            type="email"
+            required
+            value={form.email}
+            onChange={handleChange}
+          />
+        </label>
 
-        <div>
-          <label>
-            Password<br />
-            <input
-              name="password"
-              type="password"
-              required
-              value={form.password}
-              onChange={handleChange}
-            />
-          </label>
-        </div>
+        <label>
+          Password
+          <input
+            name="password"
+            type="password"
+            required
+            value={form.password}
+            onChange={handleChange}
+          />
+        </label>
 
-        <div>
-          <label>
-            Role<br />
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-            >
-              <option value="viewer">Viewer</option>
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
-            </select>
-          </label>
-        </div>
+        <label>
+          Role
+          <select
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+          >
+            <option value="viewer">Viewer</option>
+            <option value="editor">Editor</option>
+            <option value="admin">Admin</option>
+          </select>
+        </label>
 
         <button type="submit" disabled={loading}>
           {loading ? "Creating..." : "Create User"}
         </button>
-      </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
-    </div>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        {success && <p style={{ color: "green" }}>{success}</p>}
+      </form>
+    </Modal>
   );
 }

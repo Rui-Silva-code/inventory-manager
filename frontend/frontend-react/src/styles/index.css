@@ -254,3 +254,53 @@ th {
 .audit-delete {
   background: #fee2e2;
 }
+
+/* =========================
+   MODALS (Excel-style windows)
+   ========================= */
+
+.modal-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none; /* allow background to exist visually */
+  z-index: 1000;
+}
+
+.modal-window {
+  pointer-events: auto;
+  margin: 80px auto 0;
+  background: white;
+  border: 1px solid var(--border);
+  max-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: #f8fafc;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 6px;
+}
+
+.modal-body {
+  padding: 12px;
+  overflow: auto;
+}
+
