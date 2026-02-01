@@ -95,9 +95,6 @@ tbody td:last-child {
 }
 
 /* ===== ROW STATES ===== */
-tbody tr:hover {
-  background: inherit;             /* NO hover effect */
-}
 
 .row-marked {
   background: #fca5a5;             /* light red */

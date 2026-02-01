@@ -150,7 +150,7 @@ export default function InventoryPage() {
          FILTERS PANEL
          ===================================================== */}
       {showFilters && (
-        <section className="panel">
+        <section className="panel filters">
           <ProductFilters filters={filters} setFilters={setFilters} />
         </section>
       )}

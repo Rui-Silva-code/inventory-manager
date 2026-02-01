@@ -1,7 +1,8 @@
 /* ===== CLEAN FORM GRID ===== */
 
 /* Half-width Add Product panel */
-.panel.add-product {
+.panel.add-product,
+.panel.filters {
   max-width: 50%;
 }
 

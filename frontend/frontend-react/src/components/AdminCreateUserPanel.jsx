@@ -41,7 +41,7 @@ export default function AdminCreateUserPanel({ onClose }) {
 
   return (
     <Modal title="Create User" width={460} onClose={onClose}>
-      <form onSubmit={handleSubmit}>
+      <form className="modal-form" onSubmit={handleSubmit}>
         <label>
           Email
           <input
@@ -76,11 +76,11 @@ export default function AdminCreateUserPanel({ onClose }) {
             <option value="admin">Admin</option>
           </select>
         </label>
-
+<div className="full">
         <button type="submit" disabled={loading}>
           {loading ? "Creating..." : "Create User"}
         </button>
-
+</div>
         {error && <p style={{ color: "red" }}>{error}</p>}
         {success && <p style={{ color: "green" }}>{success}</p>}
       </form>

@@ -81,7 +81,7 @@ button:disabled {
 }
 
 .panel-toggles button.active {
-  background: #e5e7eb;
+  background: #759be7;
   font-weight: 600;
 }
 
@@ -209,3 +209,27 @@ td:last-child {
   padding: 14px;
   overflow: auto;
 }
+
+/* Modal form grid */
+.modal-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.modal-form .full {
+  grid-column: 1 / -1;
+}
+
+.modal-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-body table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
