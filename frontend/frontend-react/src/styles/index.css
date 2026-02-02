@@ -54,16 +54,42 @@ body {
 
 /* ===== BUTTONS ===== */
 button {
-  padding: 6px 12px;
+  padding: 8px 14px;
+  border-radius: 6px;
   border: 1px solid var(--border-strong);
   background: white;
+  font-size: 14px;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
+/* Primary action */
+button.primary,
+.panel-toggles button.active {
+  background: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+}
+
+/* Secondary buttons (right side) */
+.panel-toggles .right button {
+  background: white;
+  color: var(--muted);
+  border-color: var(--border-light);
+}
+
+/* Hover */
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* Disabled */
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
+
 
 /* ===== CONTROL ROW ===== */
 .panel-toggles {
@@ -252,6 +278,17 @@ td:last-child {
   border-collapse: separate;
   border-spacing: 0;
 }
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close {
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
 
 @media print {
   body * {
@@ -274,4 +311,10 @@ td:last-child {
   .top-bar {
     display: none !important;
   }
+}
+
+.modal-body hr {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin: 20px 0;
 }

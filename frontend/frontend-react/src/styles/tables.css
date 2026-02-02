@@ -114,3 +114,14 @@ tbody td:last-child {
   gap: 12px;
   align-items: center;
 }
+
+/* Fix sticky headers inside modals */
+.modal-body .table-wrapper {
+  max-height: 55vh;
+  overflow: auto;
+}
+
+.modal-body thead th {
+  top: 0;
+}
+

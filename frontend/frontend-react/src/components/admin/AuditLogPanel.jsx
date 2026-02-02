@@ -100,6 +100,7 @@ export default function AuditLogPanel({ onClose }) {
       </div>
 
       {/* ===== TABLE ===== */}
+      <div className="table-wrapper">
       <table width="100%">
         <thead>
           <tr>
@@ -248,6 +249,7 @@ export default function AuditLogPanel({ onClose }) {
           })}
         </tbody>
       </table>
+      </div>
 
       {/* ===== PAGINATION ===== */}
       <div className="pagination">
