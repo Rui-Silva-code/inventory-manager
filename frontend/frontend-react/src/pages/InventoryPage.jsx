@@ -7,7 +7,7 @@ import ProductFilters from "../components/inventory/ProductFilters";
 import ProductTable from "../components/inventory/ProductTable";
 
 import AuditLogPanel from "../components/admin/AuditLogPanel";
-import AdminUsersPanel from "../components/admin/AdminUsersPanel";
+import AdminUsersPanel from "../components/admin/UsersPanel";
 
 import {
   getProducts,
