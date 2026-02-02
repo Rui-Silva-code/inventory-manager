@@ -20,37 +20,22 @@ export default function AuditLogPanel({ onClose }) {
   const [expanded, setExpanded] = useState(new Set());
   const [selectedDate, setSelectedDate] = useState("");
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadLogs();
   }, []);
 
   async function loadLogs() {
-    try {
-      const data = await getAuditLogs();
-      setLogs(data);
-    } catch {
-      setError("Failed to load audit logs");
-    } finally {
-      setLoading(false);
-    }
+    const data = await getAuditLogs();
+    setLogs(data);
   }
 
   function toggle(id) {
-    setExpanded((prev) => {
+    setExpanded(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
-  }
-
-  function rowColor(action) {
-    if (action === "CREATE") return "#41ff77";
-    if (action === "UPDATE") return "#fce264";
-    if (action === "DELETE") return "#ff4343";
-    return "white";
   }
 
   function sameDay(dateStr, filter) {
@@ -64,9 +49,10 @@ export default function AuditLogPanel({ onClose }) {
     );
   }
 
-  const filteredLogs = useMemo(() => {
-    return logs.filter((l) => sameDay(l.created_at, selectedDate));
-  }, [logs, selectedDate]);
+  const filteredLogs = useMemo(
+    () => logs.filter(l => sameDay(l.created_at, selectedDate)),
+    [logs, selectedDate]
+  );
 
   const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE);
 
@@ -75,23 +61,19 @@ export default function AuditLogPanel({ onClose }) {
     return filteredLogs.slice(start, start + PAGE_SIZE);
   }, [filteredLogs, page]);
 
-  function valueChanged(field, before, after) {
-    return before?.[field] !== after?.[field];
-  }
-
-  if (loading) return <p>Loading audit logs...</p>;
-  if (error) return <p>{error}</p>;
-
   return (
     <Modal title="Audit Log" onClose={onClose}>
-      {/* ===== CALENDAR FILTER ===== */}
-      <div style={{ marginBottom: 12 }}>
+      {/* =========================
+         DATE FILTER
+         ========================= */}
+      <div style={{ marginBottom: 16 }}>
         <label>
-          Day{" "}
+          Day
           <input
             type="date"
+            className="audit-date"
             value={selectedDate}
-            onChange={(e) => {
+            onChange={e => {
               setSelectedDate(e.target.value);
               setPage(1);
             }}
@@ -99,9 +81,10 @@ export default function AuditLogPanel({ onClose }) {
         </label>
       </div>
 
-      {/* ===== TABLE ===== */}
-      <div className="table-wrapper">
-      <table width="100%">
+      {/* =========================
+         TABLE (NO WRAPPER SCROLL)
+         ========================= */}
+      <table>
         <thead>
           <tr>
             <th>Date</th>
@@ -116,18 +99,13 @@ export default function AuditLogPanel({ onClose }) {
         </thead>
 
         <tbody>
-          {visibleLogs.map((log) => {
-            const after = log.after_state;
-            const before = log.before_state;
-            const snapshot = after || before || {};
+          {visibleLogs.map(log => {
             const isOpen = expanded.has(log.id);
+            const snapshot = log.after_state || log.before_state || {};
 
             return (
               <>
-                <tr
-                  key={log.id}
-                  style={{ backgroundColor: rowColor(log.action) }}
-                >
+                <tr key={log.id}>
                   <td>{new Date(log.created_at).toLocaleString()}</td>
                   <td>{log.user_email}</td>
                   <td>{log.user_role}</td>
@@ -143,104 +121,26 @@ export default function AuditLogPanel({ onClose }) {
                 </tr>
 
                 {isOpen && (
-                  <tr key={`${log.id}-details`}>
+                  <tr>
                     <td colSpan={8}>
-                      {log.action === "UPDATE" && (
-                        <>
-                          <b>BEFORE</b>
-                          <table width="100%" style={{ marginBottom: 10 }}>
-                            <thead>
-                              <tr>
-                                {FIELDS.map((f) => (
-                                  <th key={f}>{f}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                {FIELDS.map((f) => (
-                                  <td key={f}>{String(before?.[f] ?? "")}</td>
-                                ))}
-                              </tr>
-                            </tbody>
-                          </table>
-
-                          <b>AFTER</b>
-                          <table width="100%">
-                            <thead>
-                              <tr>
-                                {FIELDS.map((f) => (
-                                  <th key={f}>{f}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                {FIELDS.map((f) => (
-                                  <td
-                                    key={f}
-                                    style={{
-                                      backgroundColor: valueChanged(
-                                        f,
-                                        before,
-                                        after
-                                      )
-                                        ? "#f873e2"
-                                        : "transparent"
-                                    }}
-                                  >
-                                    {String(after?.[f] ?? "")}
-                                  </td>
-                                ))}
-                              </tr>
-                            </tbody>
-                          </table>
-                        </>
-                      )}
-
-                      {log.action === "CREATE" && (
-                        <>
-                          <b>Created product</b>
-                          <table width="100%">
-                            <thead>
-                              <tr>
-                                {FIELDS.map((f) => (
-                                  <th key={f}>{f}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                {FIELDS.map((f) => (
-                                  <td key={f}>{String(after?.[f] ?? "")}</td>
-                                ))}
-                              </tr>
-                            </tbody>
-                          </table>
-                        </>
-                      )}
-
-                      {log.action === "DELETE" && (
-                        <>
-                          <b>Deleted product</b>
-                          <table width="100%">
-                            <thead>
-                              <tr>
-                                {FIELDS.map((f) => (
-                                  <th key={f}>{f}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                {FIELDS.map((f) => (
-                                  <td key={f}>{String(before?.[f] ?? "")}</td>
-                                ))}
-                              </tr>
-                            </tbody>
-                          </table>
-                        </>
-                      )}
+                      <table width="100%">
+                        <thead>
+                          <tr>
+                            {FIELDS.map(f => (
+                              <th key={f}>{f}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            {FIELDS.map(f => (
+                              <td key={f}>
+                                {String(snapshot[f] ?? "")}
+                              </td>
+                            ))}
+                          </tr>
+                        </tbody>
+                      </table>
                     </td>
                   </tr>
                 )}
@@ -249,11 +149,15 @@ export default function AuditLogPanel({ onClose }) {
           })}
         </tbody>
       </table>
-      </div>
 
-      {/* ===== PAGINATION ===== */}
+      {/* =========================
+         PAGINATION
+         ========================= */}
       <div className="pagination">
-        <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(p => p - 1)}
+        >
           Prev
         </button>
         <span>
@@ -261,7 +165,7 @@ export default function AuditLogPanel({ onClose }) {
         </span>
         <button
           disabled={page === totalPages}
-          onClick={() => setPage((p) => p + 1)}
+          onClick={() => setPage(p => p + 1)}
         >
           Next
         </button>

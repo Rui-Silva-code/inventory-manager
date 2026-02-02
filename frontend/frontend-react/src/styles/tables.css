@@ -125,3 +125,16 @@ tbody td:last-child {
   top: 0;
 }
 
+.modal-body table {
+  border: 1px solid #000;
+}
+
+.modal-body thead th {
+  text-align: center;
+}
+/* Remove scroll inside modals */
+.modal-body .table-wrapper {
+  max-height: none;
+  overflow: visible;
+}
+

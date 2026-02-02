@@ -261,6 +261,7 @@ export default function InventoryPage() {
          ========================= */}
       {showAdd && canEdit && (
         <section className="panel add-product">
+          <h3 className="panel-title">Add Product</h3>
           <ProductForm
             onAdd={handleAdd}
             canEdit={canEdit}
@@ -273,6 +274,7 @@ export default function InventoryPage() {
          ========================= */}
       {showFilters && (
         <section className="panel filters">
+          <h3 className="panel-title">Filters</h3>
           <ProductFilters
             filters={filters}
             setFilters={setFilters}

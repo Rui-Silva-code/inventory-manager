@@ -2,75 +2,85 @@
    FORM LAYOUTS (RESPONSIVE)
    ========================================================= */
 
-/* Panels (Add Product / Filters) */
 .panel.add-product,
 .panel.filters {
   max-width: 720px;
 }
 
+.panel-title {
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
 /* Base grid */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-/* Labels */
 .form-grid label {
   display: flex;
   flex-direction: column;
-  font-size: 14px;
   gap: 6px;
 }
 
-/* Inputs */
 .form-grid input,
 .form-grid select {
   padding: 8px 10px;
   border-radius: 6px;
   border: 1px solid var(--border-light);
-  font-size: 14px;
 }
 
-/* X / Y row */
+/* X / Y fix */
 .form-row {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-/* Full-width rows */
 .form-grid .full {
   grid-column: 1 / -1;
 }
 
-/* Footer */
 .form-footer {
   grid-column: 1 / -1;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
 }
 
-/* Checkbox inline */
-.form-footer .checkbox {
+/* USERS MODAL */
+.users-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+}
+
+.users-form {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* ===== MOBILE ===== */
+.users-form input,
+.users-form select {
+  max-width: 260px;
+}
+
+/* AUDIT */
+.audit-date {
+  margin-left: 8px;
+  padding: 8px 12px;
+  font-size: 16px;
+  min-width: 220px;
+}
+
+/* MOBILE */
 @media (max-width: 768px) {
-  .form-grid {
+  .form-grid,
+  .users-layout {
     grid-template-columns: 1fr;
-  }
-
-  .form-row {
-    flex-direction: column;
-  }
-
-  .panel.add-product,
-  .panel.filters {
-    max-width: 100%;
   }
 }
