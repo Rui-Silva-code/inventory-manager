@@ -11,94 +11,61 @@ import Modal from "../common/Modal";
 /*
   ADMIN USERS PANEL
   -----------------
-  - Single modal
-  - Create user ALWAYS visible at top
-  - Users list below
+  - SINGLE modal
+  - Create user + list users
   - No nested modals
-  - X closes everything
 */
 
 export default function AdminUsersPanel({ onClose }) {
   const { user: currentUser } = useAuth();
 
-  /* ===== USERS LIST STATE ===== */
+  /* ===== DATA ===== */
   const [users, setUsers] = useState([]);
   const [pendingRoles, setPendingRoles] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  /* ===== CREATE USER STATE ===== */
+  /* ===== CREATE USER FORM ===== */
   const [form, setForm] = useState({
     email: "",
     password: "",
     role: "viewer"
   });
 
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState(null);
-
-  /* ===== LOAD USERS ===== */
+  /* ===== LOAD ===== */
   useEffect(() => {
     loadUsers();
   }, []);
 
   async function loadUsers() {
-    try {
-      setLoading(true);
-      const data = await getUsers();
-      setUsers(data);
-    } catch {
-      setError("Failed to load users");
-    } finally {
-      setLoading(false);
-    }
+    const data = await getUsers();
+    setUsers(data);
   }
 
   /* ===== CREATE USER ===== */
-  function handleCreateChange(e) {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  }
-
   async function handleCreateUser(e) {
     e.preventDefault();
-    setCreating(true);
-    setCreateError(null);
-
-    try {
-      await createUser(form);
-      setForm({ email: "", password: "", role: "viewer" });
-      loadUsers();
-    } catch {
-      setCreateError("Failed to create user");
-    } finally {
-      setCreating(false);
-    }
+    await createUser(form);
+    setForm({ email: "", password: "", role: "viewer" });
+    loadUsers();
   }
 
   /* ===== ROLE CHANGE ===== */
-  function handleRoleSelect(userId, newRole) {
-    setPendingRoles(prev => ({ ...prev, [userId]: newRole }));
+  function handleRoleSelect(userId, role) {
+    setPendingRoles(prev => ({ ...prev, [userId]: role }));
   }
 
   async function confirmRoleChange(userId) {
-    const newRole = pendingRoles[userId];
-    if (!newRole) return;
-
-    await updateUserRole(userId, newRole);
-
+    await updateUserRole(userId, pendingRoles[userId]);
     setPendingRoles(prev => {
       const copy = { ...prev };
       delete copy[userId];
       return copy;
     });
-
     loadUsers();
   }
 
-  /* ===== DELETE USER ===== */
+  /* ===== DELETE ===== */
   async function handleDelete(userId) {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Delete this user?")) return;
     await deleteUser(userId);
     loadUsers();
   }
@@ -106,19 +73,17 @@ export default function AdminUsersPanel({ onClose }) {
   const adminCount = users.filter(u => u.role === "admin").length;
 
   return (
-    <Modal title="Users" onClose={onClose} width={900}>
+    <Modal title="Users" onClose={onClose}>
       {/* =========================
-         CREATE USER (TOP)
+         CREATE USER
          ========================= */}
       <form className="modal-form" onSubmit={handleCreateUser}>
         <label>
           Email
           <input
-            type="email"
-            name="email"
-            required
             value={form.email}
-            onChange={handleCreateChange}
+            onChange={e => setForm({ ...form, email: e.target.value })}
+            required
           />
         </label>
 
@@ -126,19 +91,17 @@ export default function AdminUsersPanel({ onClose }) {
           Password
           <input
             type="password"
-            name="password"
-            required
             value={form.password}
-            onChange={handleCreateChange}
+            onChange={e => setForm({ ...form, password: e.target.value })}
+            required
           />
         </label>
 
-        <label>
+        <label className="full">
           Role
           <select
-            name="role"
             value={form.role}
-            onChange={handleCreateChange}
+            onChange={e => setForm({ ...form, role: e.target.value })}
           >
             <option value="viewer">Viewer</option>
             <option value="editor">Editor</option>
@@ -147,95 +110,71 @@ export default function AdminUsersPanel({ onClose }) {
         </label>
 
         <div className="full">
-          <button type="submit" disabled={creating}>
-            {creating ? "Creating..." : "Create User"}
-          </button>
+          <button type="submit">Create User</button>
         </div>
-
-        {createError && (
-          <p style={{ color: "red" }} className="full">
-            {createError}
-          </p>
-        )}
       </form>
 
-      <hr style={{ margin: "20px 0" }} />
+      <hr />
 
       {/* =========================
          USERS LIST
          ========================= */}
-      {loading && <p>Loading users...</p>}
-      {error && <p>{error}</p>}
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Confirm</th>
+            <th>Created</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
 
-      {!loading && !error && (
-        <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Confirm</th>
-              <th>Created</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
+        <tbody>
+          {users.map(u => {
+            const isSelf = u.id === currentUser.id;
+            const isLastAdmin = u.role === "admin" && adminCount === 1;
+            const pending = pendingRoles[u.id];
 
-          <tbody>
-            {users.map(u => {
-              const pendingRole = pendingRoles[u.id];
-              const isSelf = u.id === currentUser.id;
-              const isLastAdmin =
-                u.role === "admin" && adminCount === 1;
+            return (
+              <tr key={u.id}>
+                <td>{u.email}</td>
 
-              return (
-                <tr key={u.id}>
-                  <td>{u.email}</td>
+                <td>
+                  <select
+                    disabled={isSelf}
+                    value={pending ?? u.role}
+                    onChange={e => handleRoleSelect(u.id, e.target.value)}
+                  >
+                    <option value="viewer">Viewer</option>
+                    <option value="editor">Editor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </td>
 
-                  <td>
-                    <select
-                      value={pendingRole ?? u.role}
-                      disabled={isSelf}
-                      onChange={e =>
-                        handleRoleSelect(u.id, e.target.value)
-                      }
-                    >
-                      <option value="viewer">Viewer</option>
-                      <option value="editor">Editor</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-
-                  <td>
-                    {!isSelf &&
-                      pendingRole &&
-                      pendingRole !== u.role && (
-                        <button
-                          onClick={() =>
-                            confirmRoleChange(u.id)
-                          }
-                        >
-                          Confirm
-                        </button>
-                      )}
-                  </td>
-
-                  <td>
-                    {new Date(u.created_at).toLocaleString()}
-                  </td>
-
-                  <td>
-                    <button
-                      disabled={isSelf || isLastAdmin}
-                      onClick={() => handleDelete(u.id)}
-                    >
-                      Delete
+                <td>
+                  {!isSelf && pending && pending !== u.role && (
+                    <button onClick={() => confirmRoleChange(u.id)}>
+                      Confirm
                     </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+                  )}
+                </td>
+
+                <td>{new Date(u.created_at).toLocaleString()}</td>
+
+                <td>
+                  <button
+                    disabled={isSelf || isLastAdmin}
+                    onClick={() => handleDelete(u.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </Modal>
   );
 }

@@ -4,7 +4,7 @@ import AdminUsersPanel from "./AdminUsersPanel";
 
 export default function AdminUsersModal({ onClose }) {
   return (
-    <Modal title="Users" width={900} onClose={onClose}>
+    <Modal title="Users" onClose={onClose}>
       {/* CREATE USER */}
       <div style={{ marginBottom: 24 }}>
         <h4>Create user</h4>

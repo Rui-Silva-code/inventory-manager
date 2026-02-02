@@ -191,7 +191,10 @@ td:last-child {
   align-items: center;
 }
 
-/* ===== MODAL ===== */
+/* =========================
+   MODAL (GLOBAL SIZE RULE)
+   ========================= */
+
 .modal-root {
   position: fixed;
   inset: 0;
@@ -203,16 +206,18 @@ td:last-child {
 }
 
 .modal-window {
-  background: white;
-  width: 900px; /* A: SAME WIDTH FOR ALL */
+  height: 500px;          /* ✅ SAME SIZE FOR ALL MODALS */ 
+  width: 900px;          /* ✅ SAME SIZE FOR ALL MODALS */
+  max-width: 95vw;       /* safety for small screens */
   max-height: 85vh;
+  background: white;
+  border: 2px solid var(--border-strong);
   display: flex;
   flex-direction: column;
-  border: 2px solid var(--border-strong);
 }
 
 .modal-header {
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-bottom: 2px solid var(--border-strong);
   display: flex;
   justify-content: space-between;
@@ -220,9 +225,10 @@ td:last-child {
 }
 
 .modal-body {
-  padding: 14px;
-  overflow: auto;
+  padding: 16px;
+  overflow: auto;        /* scroll inside modal, not page */
 }
+
 
 /* Modal form grid */
 .modal-form {

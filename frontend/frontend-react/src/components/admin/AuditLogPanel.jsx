@@ -83,7 +83,7 @@ export default function AuditLogPanel({ onClose }) {
   if (error) return <p>{error}</p>;
 
   return (
-    <Modal title="Audit Log" width={1200} onClose={onClose}>
+    <Modal title="Audit Log" onClose={onClose}>
       {/* ===== CALENDAR FILTER ===== */}
       <div style={{ marginBottom: 12 }}>
         <label>
