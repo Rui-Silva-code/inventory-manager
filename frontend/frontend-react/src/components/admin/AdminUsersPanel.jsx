@@ -5,9 +5,8 @@ import {
   deleteUser
 } from "../../api/users";
 import { useAuth } from "../../context/AuthContext";
-import Modal from "../common/Modal";
 
-export default function AdminUsersPanel({ onClose }) {
+export default function AdminUsersPanel() {
   const { user: currentUser } = useAuth();
 
   const [users, setUsers] = useState([]);
@@ -42,11 +41,13 @@ export default function AdminUsersPanel({ onClose }) {
     if (!newRole) return;
 
     await updateUserRole(userId, newRole);
+
     setPendingRoles((prev) => {
       const copy = { ...prev };
       delete copy[userId];
       return copy;
     });
+
     loadUsers();
   }
 
@@ -62,66 +63,65 @@ export default function AdminUsersPanel({ onClose }) {
   const adminCount = users.filter((u) => u.role === "admin").length;
 
   return (
-    <Modal title="Users" width={900} onClose={onClose}>
-      <table width="100%">
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Confirm</th>
-            <th>Created</th>
-            <th>Delete</th>
-          </tr>
-        </thead>
+    <table width="100%">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Confirm</th>
+          <th>Created</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
 
-        <tbody>
-          {users.map((u) => {
-            const pendingRole = pendingRoles[u.id];
-            const isSelf = u.id === currentUser.id;
-            const isLastAdmin = u.role === "admin" && adminCount === 1;
+      <tbody>
+        {users.map((u) => {
+          const pendingRole = pendingRoles[u.id];
+          const isSelf = u.id === currentUser.id;
+          const isLastAdmin = u.role === "admin" && adminCount === 1;
 
-            return (
-              <tr key={u.id}>
-                <td>{u.email}</td>
-                <td>
-                  <select
-                    value={pendingRole ?? u.role}
-                    disabled={isSelf}
-                    onChange={(e) =>
-                      handleRoleSelect(u.id, e.target.value)
-                    }
-                  >
-                    <option value="viewer">Viewer</option>
-                    <option value="editor">Editor</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </td>
+          return (
+            <tr key={u.id}>
+              <td>{u.email}</td>
 
-                <td>
-                  {!isSelf &&
-                    pendingRole &&
-                    pendingRole !== u.role && (
-                      <button onClick={() => confirmRoleChange(u.id)}>
-                        Confirm
-                      </button>
-                    )}
-                </td>
+              <td>
+                <select
+                  value={pendingRole ?? u.role}
+                  disabled={isSelf}
+                  onChange={(e) =>
+                    handleRoleSelect(u.id, e.target.value)
+                  }
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </td>
 
-                <td>{new Date(u.created_at).toLocaleString()}</td>
+              <td>
+                {!isSelf &&
+                  pendingRole &&
+                  pendingRole !== u.role && (
+                    <button onClick={() => confirmRoleChange(u.id)}>
+                      Confirm
+                    </button>
+                  )}
+              </td>
 
-                <td>
-                  <button
-                    disabled={isSelf || isLastAdmin}
-                    onClick={() => handleDelete(u.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </Modal>
+              <td>{new Date(u.created_at).toLocaleString()}</td>
+
+              <td>
+                <button
+                  disabled={isSelf || isLastAdmin}
+                  onClick={() => handleDelete(u.id)}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }

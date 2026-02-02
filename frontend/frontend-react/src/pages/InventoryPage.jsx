@@ -7,8 +7,7 @@ import ProductFilters from "../components/inventory/ProductFilters.jsx";
 import ProductTable from "../components/inventory/ProductTable.jsx";
 
 import AuditLogPanel from "../components/admin/AuditLogPanel.jsx";
-import AdminCreateUserPanel from "../components/AdminCreateUserPanel.jsx";
-import AdminUsersPanel from "../components/admin/AdminUsersPanel.jsx";
+import AdminUsersModal from "../components/admin/AdminUsersModal.jsx";
 
 import {
   getProducts,
@@ -42,9 +41,11 @@ export default function InventoryPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [showAuditLog, setShowAuditLog] = useState(false);
-  const [showCreateUser, setShowCreateUser] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
 
+  /* =========================
+     LOAD DATA
+     ========================= */
   useEffect(() => {
     loadProducts();
   }, []);
@@ -69,6 +70,69 @@ export default function InventoryPage() {
     loadProducts();
   }
 
+  /* =========================
+     CSV EXPORT
+     ========================= */
+  function exportCSV(rows) {
+    if (!rows.length) return;
+
+    const headers = Object.keys(rows[0]);
+    const csv = [
+      headers.join(","),
+      ...rows.map(r =>
+        headers
+          .map(h => `"${String(r[h] ?? "").replace(/"/g, '""')}"`)
+          .join(",")
+      )
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `SOBRAS_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  /* =========================
+     CSV IMPORT
+     ========================= */
+  async function handleImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter(Boolean);
+    if (lines.length < 2) return alert("Invalid CSV");
+
+    const headers = lines[0].split(",").map(h => h.trim());
+
+    for (const line of lines.slice(1)) {
+      const values = line.split(",");
+      const row = headers.reduce((o, h, i) => {
+        o[h] = values[i]?.replace(/^"|"$/g, "") ?? "";
+        return o;
+      }, {});
+
+      await createProduct({
+        referencia: row.referencia || "",
+        cor: row.cor || "",
+        x: row.x ? Number(row.x) : null,
+        y: row.y ? Number(row.y) : null,
+        rack: row.rack || "",
+        acab: row.acab || "",
+        obs: row.obs || "",
+        marked: false
+      });
+    }
+
+    loadProducts();
+    alert("Import completed");
+  }
+
   return (
     <PageLayout
       title="Inventory Manager"
@@ -80,84 +144,81 @@ export default function InventoryPage() {
         />
       }
     >
-      {/* =====================================================
-         TOP CONTROL BAR (MUST BE ABOVE EVERYTHING)
-         ===================================================== */}
-      <div
-        className="panel-toggles"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center"
-        }}
-      >
-        {/* LEFT — INVENTORY CONTROLS */}
-        <div style={{ display: "flex", gap: 8 }}>
+      {/* =========================
+         TOP CONTROLS
+         ========================= */}
+      <div className="panel-toggles">
+        <div className="left">
           {canEdit && (
-            <button
-              className={showAdd ? "active" : ""}
-              onClick={() => setShowAdd(v => !v)}
-            >
-              Add Product
-            </button>
+            <button onClick={() => setShowAdd(v => !v)}>Add Product</button>
           )}
 
-          <button
-            className={showFilters ? "active" : ""}
-            onClick={() => setShowFilters(v => !v)}
-          >
-            Filters
-          </button>
+          <button onClick={() => setShowFilters(v => !v)}>Filters</button>
 
           <button
-            className={filters.onlyMarked ? "active" : ""}
             onClick={() =>
               setFilters(f => ({ ...f, onlyMarked: !f.onlyMarked }))
             }
           >
             Marked
           </button>
+
+          {filters.onlyMarked && (
+            <button onClick={() => window.print()}>Print</button>
+          )}
         </div>
 
-        {/* RIGHT — ADMIN CONTROLS */}
-        {isAdmin && (
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => setShowCreateUser(true)}>
-              Create User
-            </button>
+        <div className="right">
+          <button
+            onClick={() => {
+              const rows = [...document.querySelectorAll("tbody tr")].map(tr =>
+                [...tr.children].reduce((o, td, i) => {
+                  o[`col_${i}`] = td.innerText;
+                  return o;
+                }, {})
+              );
+              exportCSV(rows);
+            }}
+          >
+            Export
+          </button>
 
-            <button onClick={() => setShowUsers(true)}>
-              Users
-            </button>
+          <button onClick={() => document.getElementById("import-file").click()}>
+            Import
+          </button>
 
-            <button onClick={() => setShowAuditLog(true)}>
-              Audit Log
-            </button>
-          </div>
-        )}
+          <input
+            id="import-file"
+            type="file"
+            accept=".csv"
+            hidden
+            onChange={handleImport}
+          />
+
+          {isAdmin && (
+            <>
+              <button onClick={() => setShowUsers(true)}>Users</button>
+              <button onClick={() => setShowAuditLog(true)}>Audit Log</button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* =====================================================
-         ADD PRODUCT PANEL
-         ===================================================== */}
+      {/* =========================
+         PANELS
+         ========================= */}
       {showAdd && canEdit && (
-        <section className="panel add-product">
-          <ProductForm onAdd={handleAdd} canEdit={canEdit} />
+        <section className="panel">
+          <ProductForm onAdd={handleAdd} />
         </section>
       )}
 
-      {/* =====================================================
-         FILTERS PANEL
-         ===================================================== */}
       {showFilters && (
-        <section className="panel filters">
+        <section className="panel">
           <ProductFilters filters={filters} setFilters={setFilters} />
         </section>
       )}
 
-      {/* =====================================================
-         TABLE
-         ===================================================== */}
       <section className="panel">
         <ProductTable
           products={products}
@@ -169,19 +230,15 @@ export default function InventoryPage() {
         />
       </section>
 
-      {/* =====================================================
-         ADMIN PANELS / MODALS
-         ===================================================== */}
-      {isAdmin && showAuditLog && (
+      {/* =========================
+         MODALS
+         ========================= */}
+      {showUsers && (
+        <AdminUsersModal onClose={() => setShowUsers(false)} />
+      )}
+
+      {showAuditLog && (
         <AuditLogPanel onClose={() => setShowAuditLog(false)} />
-      )}
-
-      {isAdmin && showUsers && (
-        <AdminUsersPanel onClose={() => setShowUsers(false)} />
-      )}
-
-      {isAdmin && showCreateUser && (
-        <AdminCreateUserPanel onClose={() => setShowCreateUser(false)} />
       )}
     </PageLayout>
   );

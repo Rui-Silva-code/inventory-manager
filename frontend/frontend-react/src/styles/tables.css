@@ -7,7 +7,7 @@
   max-height: 65vh;
   overflow-x: auto;
   overflow-y: auto;
-  border: 2px solid #000;
+  border: 3px solid #000;
 }
 
 /* ===== TABLE BASE ===== */
@@ -16,7 +16,7 @@ table {
   min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: #fff;
+  background: #fdfdfd;
 }
 
 /* ===== HEADER ===== */
@@ -25,7 +25,7 @@ thead th {
   top: 0;
   z-index: 2;
 
-  background: #f3f4f6;              /* very light gray */
+  background: #a2bef5;              /* very light gray */
   font-weight: 600;
 
   border-bottom: 2px solid #000;    /* strong header separator */
@@ -37,7 +37,7 @@ thead th {
 
 /* last header cell */
 thead th:last-child {
-  border-right: none;
+  border-right: 1px solid black;
 }
 
 /* ===== HEADER CONTENT ===== */
@@ -85,8 +85,8 @@ tbody td {
   padding: 8px 10px;
   white-space: nowrap;
 
-  border-right: 1px solid #cbd5e1;  /* light grid */
-  border-bottom: 1px solid #cbd5e1;
+  border-right: 1px solid #000000;  /* light grid */
+  border-bottom: 1px solid #000000;
 }
 
 /* last column */

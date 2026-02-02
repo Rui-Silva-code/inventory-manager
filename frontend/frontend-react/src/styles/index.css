@@ -87,7 +87,6 @@ button:disabled {
 
 /* ===== PANELS ===== */
 .panel {
-  border: 1px solid var(--border-strong);
   background: white;
   padding: 16px;
   margin-bottom: 12px;
@@ -233,3 +232,25 @@ td:last-child {
   border-spacing: 0;
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  table,
+  table * {
+    visibility: visible;
+  }
+
+  table {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .panel-toggles,
+  .top-bar {
+    display: none !important;
+  }
+}
