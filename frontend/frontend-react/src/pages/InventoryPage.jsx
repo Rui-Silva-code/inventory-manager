@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import PageLayout from "../components/layout/PageLayout.jsx";
-import TopBar from "../components/layout/TopBar.jsx";
+import PageLayout from "../components/layout/PageLayout";
+import TopBar from "../components/layout/TopBar";
 
-import ProductForm from "../components/inventory/ProductForm.jsx";
-import ProductFilters from "../components/inventory/ProductFilters.jsx";
-import ProductTable from "../components/inventory/ProductTable.jsx";
+import ProductForm from "../components/inventory/ProductForm";
+import ProductFilters from "../components/inventory/ProductFilters";
+import ProductTable from "../components/inventory/ProductTable";
 
-import AuditLogPanel from "../components/admin/AuditLogPanel.jsx";
-import AdminUsersModal from "../components/admin/AdminUsersModal.jsx";
+import AuditLogPanel from "../components/admin/AuditLogPanel";
+import AdminUsersPanel from "../components/admin/AdminUsersPanel";
 
 import {
   getProducts,
@@ -16,17 +16,40 @@ import {
   deleteProduct
 } from "../api/products";
 
-import { useAuth } from "../context/AuthContext.js";
+import { useAuth } from "../context/AuthContext";
+
+/*
+  INVENTORY PAGE
+  --------------
+  - Owns products data
+  - Owns filters
+  - Owns modals
+  - NO styling logic
+  - NO table logic
+*/
 
 export default function InventoryPage() {
   const { user, logout } = useAuth();
 
   const isAdmin = user.role === "admin";
   const canEdit = user.role === "admin" || user.role === "editor";
-  const canDelete = canEdit;
 
+  /* =========================
+     DATA
+     ========================= */
   const [products, setProducts] = useState([]);
 
+  /* =========================
+     UI STATE
+     ========================= */
+  const [showAdd, setShowAdd] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showUsers, setShowUsers] = useState(false);
+  const [showAuditLog, setShowAuditLog] = useState(false);
+
+  /* =========================
+     FILTERS
+     ========================= */
   const [filters, setFilters] = useState({
     referencia: "",
     cor: "",
@@ -37,14 +60,8 @@ export default function InventoryPage() {
     onlyMarked: false
   });
 
-  const [showAdd, setShowAdd] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-
-  const [showAuditLog, setShowAuditLog] = useState(false);
-  const [showUsers, setShowUsers] = useState(false);
-
   /* =========================
-     LOAD DATA
+     LOAD PRODUCTS
      ========================= */
   useEffect(() => {
     loadProducts();
@@ -55,6 +72,9 @@ export default function InventoryPage() {
     setProducts(data);
   }
 
+  /* =========================
+     CRUD
+     ========================= */
   async function handleAdd(product) {
     await createProduct(product);
     loadProducts();
@@ -71,25 +91,38 @@ export default function InventoryPage() {
   }
 
   /* =========================
-     CSV EXPORT
+     EXPORT CSV (VISIBLE BUTTON)
      ========================= */
-  function exportCSV(rows) {
-    if (!rows.length) return;
+  function handleExport() {
+    if (!products.length) return;
 
-    const headers = Object.keys(rows[0]);
+    const headers = [
+      "referencia",
+      "cor",
+      "x",
+      "y",
+      "rack",
+      "acab",
+      "obs",
+      "marked"
+    ];
+
     const csv = [
       headers.join(","),
-      ...rows.map(r =>
+      ...products.map(p =>
         headers
-          .map(h => `"${String(r[h] ?? "").replace(/"/g, '""')}"`)
+          .map(h => `"${String(p[h] ?? "").replace(/"/g, '""')}"`)
           .join(",")
       )
     ].join("\n");
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8;"
+    });
 
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+
     a.href = url;
     a.download = `SOBRAS_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
@@ -98,92 +131,106 @@ export default function InventoryPage() {
   }
 
   /* =========================
-     CSV IMPORT
+     IMPORT CSV (ROBUST)
      ========================= */
   async function handleImport(e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const text = await file.text();
-    const lines = text.split(/\r?\n/).filter(Boolean);
-    if (lines.length < 2) return alert("Invalid CSV");
+    const rows = parseCSV(text);
 
-    const headers = lines[0].split(",").map(h => h.trim());
-
-    for (const line of lines.slice(1)) {
-      const values = line.split(",");
-      const row = headers.reduce((o, h, i) => {
-        o[h] = values[i]?.replace(/^"|"$/g, "") ?? "";
-        return o;
-      }, {});
-
-      await createProduct({
-        referencia: row.referencia || "",
-        cor: row.cor || "",
-        x: row.x ? Number(row.x) : null,
-        y: row.y ? Number(row.y) : null,
-        rack: row.rack || "",
-        acab: row.acab || "",
-        obs: row.obs || "",
-        marked: false
-      });
+    if (!rows.length) {
+      alert("Invalid or empty CSV file");
+      return;
     }
 
-    loadProducts();
-    alert("Import completed");
+    let success = 0;
+    let failed = 0;
+
+    for (const row of rows) {
+      try {
+        await createProduct({
+          referencia: row.referencia || "",
+          cor: row.cor || "",
+          x: row.x !== "" ? Number(row.x) : null,
+          y: row.y !== "" ? Number(row.y) : null,
+          rack: row.rack || "",
+          acab: row.acab || "",
+          obs: row.obs || "",
+          marked: false
+        });
+        success++;
+      } catch {
+        failed++;
+      }
+    }
+
+    await loadProducts();
+    alert(`Import finished\nCreated: ${success}\nFailed: ${failed}`);
+    e.target.value = "";
   }
 
+  /* =========================
+     RENDER
+     ========================= */
   return (
     <PageLayout
       title="Inventory Manager"
-      actions={
-        <TopBar
-          user={user}
-          onLogout={logout}
-          isAdmin={isAdmin}
-        />
-      }
+      actions={<TopBar user={user} onLogout={logout} />}
     >
       {/* =========================
          TOP CONTROLS
          ========================= */}
       <div className="panel-toggles">
+        {/* ===== LEFT SIDE ===== */}
         <div className="left">
           {canEdit && (
-            <button onClick={() => setShowAdd(v => !v)}>Add Product</button>
+            <button
+              className={showAdd ? "active" : ""}
+              onClick={() => setShowAdd(v => !v)}
+            >
+              Add Product
+            </button>
           )}
 
-          <button onClick={() => setShowFilters(v => !v)}>Filters</button>
+          <button
+            className={showFilters ? "active" : ""}
+            onClick={() => setShowFilters(v => !v)}
+          >
+            Filters
+          </button>
 
           <button
+            className={filters.onlyMarked ? "active" : ""}
             onClick={() =>
-              setFilters(f => ({ ...f, onlyMarked: !f.onlyMarked }))
+              setFilters(f => ({
+                ...f,
+                onlyMarked: !f.onlyMarked
+              }))
             }
           >
             Marked
           </button>
 
           {filters.onlyMarked && (
-            <button onClick={() => window.print()}>Print</button>
+            <button onClick={() => window.print()}>
+              Print
+            </button>
           )}
         </div>
 
+        {/* ===== RIGHT SIDE ===== */}
         <div className="right">
-          <button
-            onClick={() => {
-              const rows = [...document.querySelectorAll("tbody tr")].map(tr =>
-                [...tr.children].reduce((o, td, i) => {
-                  o[`col_${i}`] = td.innerText;
-                  return o;
-                }, {})
-              );
-              exportCSV(rows);
-            }}
-          >
+          <button onClick={handleExport}>
             Export
           </button>
 
-          <button onClick={() => document.getElementById("import-file").click()}>
+          <button
+            onClick={() =>
+              document.getElementById("import-file").click()
+            }
+          >
             Import
           </button>
 
@@ -191,34 +238,51 @@ export default function InventoryPage() {
             id="import-file"
             type="file"
             accept=".csv"
-            hidden
+            style={{ display: "none" }}
             onChange={handleImport}
           />
 
           {isAdmin && (
             <>
-              <button onClick={() => setShowUsers(true)}>Users</button>
-              <button onClick={() => setShowAuditLog(true)}>Audit Log</button>
+              <button onClick={() => setShowUsers(true)}>
+                Users
+              </button>
+
+              <button onClick={() => setShowAuditLog(true)}>
+                Audit Log
+              </button>
             </>
           )}
         </div>
       </div>
 
       {/* =========================
-         PANELS
+         ADD PRODUCT
          ========================= */}
       {showAdd && canEdit && (
-        <section className="panel">
-          <ProductForm onAdd={handleAdd} />
+        <section className="panel add-product">
+          <ProductForm
+            onAdd={handleAdd}
+            canEdit={canEdit}
+          />
         </section>
       )}
 
+      {/* =========================
+         FILTERS
+         ========================= */}
       {showFilters && (
-        <section className="panel">
-          <ProductFilters filters={filters} setFilters={setFilters} />
+        <section className="panel filters">
+          <ProductFilters
+            filters={filters}
+            setFilters={setFilters}
+          />
         </section>
       )}
 
+      {/* =========================
+         TABLE
+         ========================= */}
       <section className="panel">
         <ProductTable
           products={products}
@@ -226,7 +290,7 @@ export default function InventoryPage() {
           onUpdate={handleUpdate}
           onDelete={handleDelete}
           canEdit={canEdit}
-          canDelete={canDelete}
+          canDelete={canEdit}
         />
       </section>
 
@@ -234,12 +298,76 @@ export default function InventoryPage() {
          MODALS
          ========================= */}
       {showUsers && (
-        <AdminUsersModal onClose={() => setShowUsers(false)} />
+        <AdminUsersPanel
+          onClose={() => setShowUsers(false)}
+        />
       )}
 
       {showAuditLog && (
-        <AuditLogPanel onClose={() => setShowAuditLog(false)} />
+        <AuditLogPanel
+          onClose={() => setShowAuditLog(false)}
+        />
       )}
     </PageLayout>
   );
+}
+
+/* =========================================================
+   CSV HELPERS (SAFE, COMMENTED)
+   ========================================================= */
+
+function parseCSV(text) {
+  const lines = text
+    .split(/\r?\n/)
+    .filter(l => l.trim() !== "");
+
+  if (lines.length < 2) return [];
+
+  const headers = splitCSVLine(lines[0]).map(normalizeHeader);
+
+  return lines.slice(1).map(line => {
+    const values = splitCSVLine(line);
+    return headers.reduce((obj, h, i) => {
+      obj[h] = values[i] ?? "";
+      return obj;
+    }, {});
+  });
+}
+
+function splitCSVLine(line) {
+  const result = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"' && line[i + 1] === '"') {
+      current += '"';
+      i++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current.trim());
+  return result;
+}
+
+function normalizeHeader(h) {
+  const key = h.toLowerCase().trim();
+  if (key.startsWith("ref")) return "referencia";
+  if (key.startsWith("color")) return "cor";
+  if (key === "x") return "x";
+  if (key === "y") return "y";
+  if (key.startsWith("rack")) return "rack";
+  if (key.startsWith("acab")) return "acab";
+  if (key.startsWith("obs")) return "obs";
+  if (key.startsWith("mark")) return "marked";
+  return key;
 }

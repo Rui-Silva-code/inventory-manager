@@ -80,10 +80,25 @@ button:disabled {
   gap: 8px;
 }
 
+
 .panel-toggles button.active {
-  background: #759be7;
+  background: var(--primary); /* light blue */
+  color: black;
   font-weight: 600;
 }
+
+/* ===== SECONDARY ACTION BUTTONS (Export / Import) ===== */
+.panel-toggles .right button {
+  border: 1px solid var(--border-light);
+  color: var(--muted);
+  background: white;
+}
+
+.panel-toggles .right button:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
 
 /* ===== PANELS ===== */
 .panel {

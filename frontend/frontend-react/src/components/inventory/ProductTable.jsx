@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 100;
 
 export default function ProductTable({
   products,
