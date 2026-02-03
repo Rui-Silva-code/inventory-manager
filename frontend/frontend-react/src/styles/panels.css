@@ -136,3 +136,52 @@ button[type="submit"],
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================
+   USERS PANEL (ADMIN / ENTERPRISE)
+   ========================= */
+
+.users-create {
+  max-width: 420px;
+  margin: 0 auto;
+  border: 1px solid black;
+  border-radius: 8px;
+  padding: 16px 24px 24px 24px;
+}
+
+.users-section-title {
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Vertical admin-style form */
+.users-form-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.users-form-vertical label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.users-form-vertical input,
+.users-form-vertical select {
+  max-width: 320px;
+}
+
+/* Create User button on the LEFT */
+.users-form-vertical button {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* Section divider */
+.users-divider {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin: 24px 0;
+}

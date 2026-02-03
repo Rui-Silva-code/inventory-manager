@@ -4,33 +4,46 @@ import pool from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireRole } from "../middleware/roles.js";
 import { logAudit } from "../utils/auditLogger.js";
+import { parse } from "csv-parse/sync";
 
 const router = express.Router();
 
-/**
- * GET /products
- * Viewer / Editor / Admin
- */
-router.get(
-  "/",
-  requireAuth,
-  async (req, res) => {
-    try {
-      const result = await pool.query(
-        "SELECT * FROM products ORDER BY created_at DESC"
-      );
-      res.json(result.rows);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Failed to fetch products" });
-    }
-  }
-);
+/* =========================================================
+   HELPERS
+   ========================================================= */
 
 /**
- * POST /products
- * Editor / Admin only
+ * Safely convert CSV values to INTEGER for PostgreSQL
+ * - returns null for empty, invalid, NaN, undefined
  */
+function toInt(value) {
+  if (value === undefined || value === null) return null;
+
+  const v = String(value).trim();
+  if (v === "") return null;
+
+  const n = Number(v);
+  return Number.isInteger(n) ? n : null;
+}
+
+/* =========================================================
+   GET PRODUCTS
+   ========================================================= */
+router.get("/", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM products ORDER BY created_at DESC"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+
+/* =========================================================
+   CREATE SINGLE PRODUCT
+   ========================================================= */
 router.post(
   "/",
   requireAuth,
@@ -58,13 +71,13 @@ router.post(
         `,
         [
           uuidv4(),
-          referencia,
-          cor,
-          x,
-          y,
-          rack,
-          acab,
-          obs,
+          referencia ?? null,
+          cor ?? null,
+          toInt(x),
+          toInt(y),
+          rack ?? null,
+          acab ?? null,
+          obs ?? null,
           marked
         ]
       );
@@ -88,10 +101,94 @@ router.post(
   }
 );
 
-/**
- * PUT /products/:id
- * Editor / Admin
- */
+/* =========================================================
+   CSV IMPORT (FINAL – SAFE, ROBUST)
+   ========================================================= */
+router.post(
+  "/import",
+  requireAuth,
+  requireRole("editor", "admin"),
+  async (req, res) => {
+    try {
+      const { csv } = req.body;
+
+      if (!csv) {
+        return res.status(400).json({ error: "CSV data missing" });
+      }
+
+      const records = parse(csv, {
+        columns: headers =>
+          headers.map(h =>
+            h.replace(/^\ufeff/, "").trim().toLowerCase()
+          ),
+        delimiter: ";",
+        skip_empty_lines: true,
+        trim: true,
+        relax_column_count: true
+      });
+
+      let inserted = 0;
+
+      for (const row of records) {
+        const product = {
+          id: uuidv4(),
+          referencia: row.referencia || null,
+          cor: row.cor || null,
+          x: toInt(row.x),
+          y: toInt(row.y),
+          rack: row.rack || null,
+          acab: row.acab || null,
+          obs: row.obs || null,
+          marked: false
+        };
+
+        const result = await pool.query(
+          `
+          INSERT INTO products (
+            id, referencia, cor, x, y, rack, acab, obs, marked
+          )
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+          RETURNING *
+          `,
+          [
+            product.id,
+            product.referencia,
+            product.cor,
+            product.x,
+            product.y,
+            product.rack,
+            product.acab,
+            product.obs,
+            product.marked
+          ]
+        );
+
+        await logAudit({
+          user: req.user,
+          action: "CREATE",
+          entity: "product",
+          entityId: product.id,
+          beforeState: null,
+          afterState: result.rows[0]
+        });
+
+        inserted++;
+      }
+
+      res.json({
+        message: "CSV imported successfully",
+        rows: inserted
+      });
+    } catch (err) {
+      console.error("IMPORT ERROR:", err);
+      res.status(500).json({ error: "Failed to import CSV" });
+    }
+  }
+);
+
+/* =========================================================
+   UPDATE PRODUCT
+   ========================================================= */
 router.put(
   "/:id",
   requireAuth,
@@ -110,7 +207,6 @@ router.put(
     } = req.body;
 
     try {
-      // 🔹 Fetch existing product (for audit log)
       const existing = await pool.query(
         "SELECT * FROM products WHERE id = $1",
         [id]
@@ -122,7 +218,6 @@ router.put(
 
       const beforeProduct = existing.rows[0];
 
-      // 🔹 Update product
       const result = await pool.query(
         `
         UPDATE products
@@ -140,13 +235,13 @@ router.put(
         RETURNING *
         `,
         [
-          referencia,
-          cor,
-          x,
-          y,
-          rack,
-          acab,
-          obs,
+          referencia ?? null,
+          cor ?? null,
+          toInt(x),
+          toInt(y),
+          rack ?? null,
+          acab ?? null,
+          obs ?? null,
           marked,
           id
         ]
@@ -171,10 +266,9 @@ router.put(
   }
 );
 
-/**
- * DELETE /products/:id
- * Admin only
- */
+/* =========================================================
+   DELETE PRODUCT
+   ========================================================= */
 router.delete(
   "/:id",
   requireAuth,
@@ -183,7 +277,6 @@ router.delete(
     const { id } = req.params;
 
     try {
-      // 🔹 Fetch existing product (for audit log)
       const existing = await pool.query(
         "SELECT * FROM products WHERE id = $1",
         [id]
@@ -195,7 +288,6 @@ router.delete(
 
       const beforeProduct = existing.rows[0];
 
-      // 🔹 Delete product
       await pool.query(
         "DELETE FROM products WHERE id = $1",
         [id]

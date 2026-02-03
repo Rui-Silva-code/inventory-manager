@@ -134,42 +134,39 @@ export default function InventoryPage() {
      IMPORT CSV (ROBUST)
      ========================= */
   async function handleImport(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const text = await file.text();
-    const rows = parseCSV(text);
+  const text = await file.text();
 
-    if (!rows.length) {
-      alert("Invalid or empty CSV file");
+  try {
+    const res = await fetch("/products/import", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify({ csv: text })
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error(err);
+      alert("Import failed");
       return;
     }
 
-    let success = 0;
-    let failed = 0;
-
-    for (const row of rows) {
-      try {
-        await createProduct({
-          referencia: row.referencia || "",
-          cor: row.cor || "",
-          x: row.x !== "" ? Number(row.x) : null,
-          y: row.y !== "" ? Number(row.y) : null,
-          rack: row.rack || "",
-          acab: row.acab || "",
-          obs: row.obs || "",
-          marked: false
-        });
-        success++;
-      } catch {
-        failed++;
-      }
-    }
-
+    const result = await res.json();
     await loadProducts();
-    alert(`Import finished\nCreated: ${success}\nFailed: ${failed}`);
-    e.target.value = "";
+
+    alert(`Imported ${result.rows} products`);
+  } catch (err) {
+    console.error(err);
+    alert("Import failed");
   }
+
+  e.target.value = "";
+}
 
   /* =========================
      RENDER
@@ -314,62 +311,3 @@ export default function InventoryPage() {
   );
 }
 
-/* =========================================================
-   CSV HELPERS (SAFE, COMMENTED)
-   ========================================================= */
-
-function parseCSV(text) {
-  const lines = text
-    .split(/\r?\n/)
-    .filter(l => l.trim() !== "");
-
-  if (lines.length < 2) return [];
-
-  const headers = splitCSVLine(lines[0]).map(normalizeHeader);
-
-  return lines.slice(1).map(line => {
-    const values = splitCSVLine(line);
-    return headers.reduce((obj, h, i) => {
-      obj[h] = values[i] ?? "";
-      return obj;
-    }, {});
-  });
-}
-
-function splitCSVLine(line) {
-  const result = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-
-    if (char === '"' && line[i + 1] === '"') {
-      current += '"';
-      i++;
-    } else if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === "," && !inQuotes) {
-      result.push(current.trim());
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-
-  result.push(current.trim());
-  return result;
-}
-
-function normalizeHeader(h) {
-  const key = h.toLowerCase().trim();
-  if (key.startsWith("ref")) return "referencia";
-  if (key.startsWith("color")) return "cor";
-  if (key === "x") return "x";
-  if (key === "y") return "y";
-  if (key.startsWith("rack")) return "rack";
-  if (key.startsWith("acab")) return "acab";
-  if (key.startsWith("obs")) return "obs";
-  if (key.startsWith("mark")) return "marked";
-  return key;
-}

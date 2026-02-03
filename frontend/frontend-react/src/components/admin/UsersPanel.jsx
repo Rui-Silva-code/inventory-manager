@@ -8,15 +8,6 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import Modal from "../common/Modal";
 
-/*
-  ADMIN USERS PANEL
-  -----------------
-  - Single modal
-  - Horizontal layout
-  - Create user (left)
-  - Users list (right)
-*/
-
 export default function AdminUsersPanel({ onClose }) {
   const { user: currentUser } = useAuth();
 
@@ -75,116 +66,116 @@ export default function AdminUsersPanel({ onClose }) {
 
   return (
     <Modal title="Users" onClose={onClose}>
-      <div className="users-layout">
-        {/* =========================
-           CREATE USER (LEFT)
-           ========================= */}
-        <div>
-          <h4 style={{ marginBottom: 12 }}>Create User</h4>
+      {/* =========================
+         CREATE USER (TOP)
+         ========================= */}
+      <div className="users-create">
+        <h4 className="users-section-title">Create User</h4>
 
-          <form className="users-form" onSubmit={handleCreateUser}>
-            <label>
-              Email
-              <input
-                value={form.email}
-                onChange={e => setForm({ ...form, email: e.target.value })}
-                required
-              />
-            </label>
+        <form className="users-form-vertical" onSubmit={handleCreateUser}>
+          <label>
+            Email
+            <input
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              required
+            />
+          </label>
 
-            <label>
-              Password
-              <input
-                type="password"
-                value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                required
-              />
-            </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={form.password}
+              onChange={e => setForm({ ...form, password: e.target.value })}
+              required
+            />
+          </label>
 
-            <label>
-              Role
-              <select
-                value={form.role}
-                onChange={e => setForm({ ...form, role: e.target.value })}
-              >
-                <option value="viewer">Viewer</option>
-                <option value="editor">Editor</option>
-                <option value="admin">Admin</option>
-              </select>
-            </label>
+          <label>
+            Role
+            <select
+              value={form.role}
+              onChange={e => setForm({ ...form, role: e.target.value })}
+            >
+              <option value="viewer">Viewer</option>
+              <option value="editor">Editor</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
 
-            <button type="submit">Create User</button>
-          </form>
-        </div>
+          <button type="submit">Create User</button>
+        </form>
+      </div>
 
-        {/* =========================
-           USERS TABLE (RIGHT)
-           ========================= */}
-        <div>
-          <table>
-            <thead>
-              <tr>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Confirm</th>
-                <th>Created</th>
-                <th>Delete</th>
-              </tr>
-            </thead>
+      <hr className="users-divider" />
 
-            <tbody>
-              {users.map(u => {
-                const isSelf = u.id === currentUser.id;
-                const isLastAdmin = u.role === "admin" && adminCount === 1;
-                const pending = pendingRoles[u.id];
+      {/* =========================
+         USERS TABLE
+         ========================= */}
+      <div>
+        <h4 className="users-section-title">Users</h4>
 
-                return (
-                  <tr key={u.id}>
-                    <td>{u.email}</td>
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Confirm</th>
+              <th>Created</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
 
-                    <td>
-                      <select
-                        disabled={isSelf}
-                        value={pending ?? u.role}
-                        onChange={e =>
-                          handleRoleSelect(u.id, e.target.value)
-                        }
-                      >
-                        <option value="viewer">Viewer</option>
-                        <option value="editor">Editor</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </td>
+          <tbody>
+            {users.map(u => {
+              const isSelf = u.id === currentUser.id;
+              const isLastAdmin = u.role === "admin" && adminCount === 1;
+              const pending = pendingRoles[u.id];
 
-                    <td>
-                      {!isSelf && pending && pending !== u.role && (
-                        <button
-                          onClick={() => confirmRoleChange(u.id)}
-                        >
-                          Confirm
-                        </button>
-                      )}
-                    </td>
+              return (
+                <tr key={u.id}>
+                  <td>{u.email}</td>
 
-                    <td>
-                      {new Date(u.created_at).toLocaleString()}
-                    </td>
+                  <td>
+                    <select
+                      disabled={isSelf}
+                      value={pending ?? u.role}
+                      onChange={e =>
+                        handleRoleSelect(u.id, e.target.value)
+                      }
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </td>
 
-                    <td>
-                      <button
-                        disabled={isSelf || isLastAdmin}
-                        onClick={() => handleDelete(u.id)}
-                      >
-                        Delete
+                  <td>
+                    {!isSelf && pending && pending !== u.role && (
+                      <button onClick={() => confirmRoleChange(u.id)}>
+                        Confirm
                       </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    )}
+                  </td>
+
+                  <td>
+                    {new Date(u.created_at).toLocaleString()}
+                  </td>
+
+                  <td>
+                    <button
+                      disabled={isSelf || isLastAdmin}
+                      onClick={() => handleDelete(u.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </Modal>
   );

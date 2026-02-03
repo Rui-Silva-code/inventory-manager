@@ -5,19 +5,27 @@ import dotenv from "dotenv";
 import productsRouter from "./routes/products.js";
 import auditLogsRouter from "./routes/auditLogs.js";
 import usersRouter from "./routes/users.js";
-import authRouter from "./routes/auth.js"; // ✅ ADD THIS
+import authRouter from "./routes/auth.js";
+
+import pool from "./db.js";
 
 dotenv.config();
 
 const app = express();
 
+/* ============================
+   MIDDLEWARE (FIXED)
+============================ */
 app.use(cors());
-app.use(express.json());
+
+// 🔴 THIS IS THE FIX
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 /* ============================
    ROUTES
 ============================ */
-app.use("/auth", authRouter);       // ✅ THIS FIXES LOGIN
+app.use("/auth", authRouter);
 app.use("/products", productsRouter);
 app.use("/audit-logs", auditLogsRouter);
 app.use("/users", usersRouter);
@@ -31,11 +39,12 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
 
-import pool from "./db.js";
-
+/* ============================
+   DB CHECK
+============================ */
 (async () => {
   try {
     await pool.query("SELECT 1");
@@ -43,7 +52,6 @@ import pool from "./db.js";
   } catch (err) {
     console.error("❌ Database connection FAILED");
     console.error(err.message);
-    process.exit(1); // stop server if DB is broken
+    process.exit(1);
   }
 })();
-
