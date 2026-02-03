@@ -317,3 +317,19 @@ td:last-child {
   border-top: 1px solid var(--border-light);
   margin: 20px 0;
 }
+
+/* =========================
+   TOP BAR USER AREA
+   ========================= */
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px; /* 🔥 space between role, email, button */
+}
+
+/* Email text */
+.user-email {
+  font-weight: 500;
+  color: var(--text);
+}
