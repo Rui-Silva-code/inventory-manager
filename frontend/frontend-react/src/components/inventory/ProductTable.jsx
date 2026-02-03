@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 const PAGE_SIZE = 100;
+const MIN_COL_WIDTH = 60;
 
 export default function ProductTable({
   products,
   filters,
-  setFilters,
   onUpdate,
   onDelete,
   canEdit,
@@ -20,19 +20,25 @@ export default function ProductTable({
     direction: null
   });
 
-  const [colWidths, setColWidths] = useState({
-    referencia: 120,
-    cor: 120,
-    x: 70,
-    y: 70,
-    rack: 90,
-    acab: 120,
-    obs: 200,
-    marked: 80,
-    actions: 140
-  });
+  /* ============================
+     COLUMN STATE
+     ============================ */
+  const [columns, setColumns] = useState([
+    { key: "referencia", label: "Ref", width: 140 },
+    { key: "cor", label: "Color", width: 110 },
+    { key: "x", label: "X", width: 70 },
+    { key: "y", label: "Y", width: 70 },
+    { key: "rack", label: "Rack", width: 90 },
+    { key: "acab", label: "Acab", width: 100 },
+    { key: "obs", label: "Obs", width: 140 },
 
-  const resizingCol = useRef(null);
+    /* NEW JOIN COLUMN */
+    { key: "resume", label: "Resume", width: 220 },
+
+    { key: "marked", label: "Marked", width: 80 }
+  ]);
+
+  const resizingRef = useRef(null);
 
   /* ============================
      RESET PAGE
@@ -42,90 +48,130 @@ export default function ProductTable({
   }, [filters, sortConfig]);
 
   /* ============================
+     HELPERS
+     ============================ */
+  const normalize = v =>
+    String(v ?? "").toLowerCase().trim();
+
+  const toNumber = v => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  function buildResume(p) {
+    if (!p) return "";
+    const ref = p.referencia ?? "";
+    const color = p.cor ?? "";
+    const x = p.x ?? "";
+    const y = p.y ?? "";
+    if (!ref && !color && !x && !y) return "";
+    return `${ref} ${color} ${x}x${y}cm`.trim();
+  }
+
+  /* ============================
      FILTERING
      ============================ */
-  const filteredProducts = products.filter((p) => {
-    if (filters.referencia && !p.referencia?.includes(filters.referencia)) return false;
-    if (filters.cor && !p.cor?.includes(filters.cor)) return false;
-    if (filters.rack && !p.rack?.includes(filters.rack)) return false;
-    if (filters.acab && !p.acab?.includes(filters.acab)) return false;
-    if (filters.x && p.x < Number(filters.x)) return false;
-    if (filters.y && p.y < Number(filters.y)) return false;
+  const filtered = products.filter(p => {
+    if (filters.referencia && !normalize(p.referencia).includes(normalize(filters.referencia))) return false;
+    if (filters.cor && !normalize(p.cor).includes(normalize(filters.cor))) return false;
+    if (filters.acab && !normalize(p.acab).includes(normalize(filters.acab))) return false;
+    if (filters.rack && !normalize(p.rack).includes(normalize(filters.rack))) return false;
+
+    const minX = toNumber(filters.x);
+    const minY = toNumber(filters.y);
+
+    if (minX !== null && toNumber(p.x) < minX) return false;
+    if (minY !== null && toNumber(p.y) < minY) return false;
+
     if (filters.onlyMarked && !p.marked) return false;
     return true;
   });
 
   /* ============================
-     SORTING (UNCHANGED LOGIC)
+     SORTING
      ============================ */
   function handleSort(key) {
-    setSortConfig((prev) => {
-      if (prev.key !== key) return { key, direction: "desc" };
-      if (prev.direction === "desc") return { key, direction: "asc" };
-      if (prev.direction === "asc") return { key: null, direction: null };
-      return { key, direction: "desc" };
+    if (key === "resume") return;
+
+    setSortConfig(prev => {
+      if (prev.key !== key) return { key, direction: "asc" };
+      if (prev.direction === "asc") return { key, direction: "desc" };
+      return { key: null, direction: null };
     });
   }
 
-  function sortIndicator(key) {
-    if (sortConfig.key !== key) return "↕";
-    if (sortConfig.direction === "desc") return "↓";
-    if (sortConfig.direction === "asc") return "↑";
-    return "↕";
-  }
+  const sorted = [...filtered].sort((a, b) => {
+    if (!sortConfig.key) return 0;
 
-  function sortProducts(list) {
-    if (!sortConfig.key || !sortConfig.direction) return list;
     const dir = sortConfig.direction === "asc" ? 1 : -1;
+    const key = sortConfig.key;
 
-    return [...list].sort((a, b) => {
-      const A = a[sortConfig.key];
-      const B = b[sortConfig.key];
-      return String(A ?? "").localeCompare(String(B ?? ""), undefined, { sensitivity: "base" }) * dir;
-    });
-  }
+    if (key === "x" || key === "y") {
+      return ((a[key] ?? 0) - (b[key] ?? 0)) * dir;
+    }
 
-  const sorted = sortProducts(filteredProducts);
+    return normalize(a[key]).localeCompare(normalize(b[key])) * dir;
+  });
 
-  /* ============================
-     PAGINATION
-     ============================ */
-  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
-  const visibleProducts = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const visible = sorted.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   /* ============================
-     COLUMN RESIZE (UNCHANGED)
+     COLUMN RESIZE
      ============================ */
-  function startResize(e, key) {
-    resizingCol.current = { key, startX: e.clientX, startWidth: colWidths[key] };
-    document.addEventListener("mousemove", onResize);
+  function startResize(e, index) {
+    resizingRef.current = {
+      index,
+      startX: e.clientX,
+      startWidth: columns[index].width
+    };
+
+    document.addEventListener("mousemove", resizeMove);
     document.addEventListener("mouseup", stopResize);
   }
 
-  function onResize(e) {
-    if (!resizingCol.current) return;
-    const delta = e.clientX - resizingCol.current.startX;
-    setColWidths((w) => ({
-      ...w,
-      [resizingCol.current.key]: Math.max(50, resizingCol.current.startWidth + delta)
-    }));
+  function resizeMove(e) {
+    if (!resizingRef.current) return;
+    const { index, startX, startWidth } = resizingRef.current;
+    const delta = e.clientX - startX;
+
+    setColumns(cols =>
+      cols.map((c, i) =>
+        i === index
+          ? { ...c, width: Math.max(MIN_COL_WIDTH, startWidth + delta) }
+          : c
+      )
+    );
   }
 
   function stopResize() {
-    resizingCol.current = null;
-    document.removeEventListener("mousemove", onResize);
+    resizingRef.current = null;
+    document.removeEventListener("mousemove", resizeMove);
     document.removeEventListener("mouseup", stopResize);
   }
 
-  function autoFitColumn(key) {
-    const maxLen = Math.max(
-      key.length,
-      ...products.map((p) => String(p[key] ?? "").length)
+  /* DOUBLE CLICK AUTO SIZE */
+  function autoSizeColumn(index) {
+    const key = columns[index].key;
+    const headerText = columns[index].label;
+
+    let max = headerText.length;
+
+    visible.forEach(p => {
+      const value =
+        key === "resume" ? buildResume(p) : String(p[key] ?? "");
+      max = Math.max(max, value.length);
+    });
+
+    setColumns(cols =>
+      cols.map((c, i) =>
+        i === index
+          ? { ...c, width: Math.min(420, max * 8 + 24) }
+          : c
+      )
     );
-    setColWidths((w) => ({
-      ...w,
-      [key]: Math.min(320, maxLen * 9 + 24)
-    }));
   }
 
   /* ============================
@@ -143,15 +189,15 @@ export default function ProductTable({
 
   async function saveEdit() {
     await onUpdate(editingId, editForm);
-    setEditingId(null);
+    cancelEdit();
   }
 
-  function handleEditChange(e) {
+  function handleChange(e) {
     const { name, value, type, checked } = e.target;
-    setEditForm({
-      ...editForm,
+    setEditForm(f => ({
+      ...f,
       [name]: type === "checkbox" ? checked : value
-    });
+    }));
   }
 
   function toggleMarked(p) {
@@ -159,132 +205,116 @@ export default function ProductTable({
     onUpdate(p.id, { ...p, marked: !p.marked });
   }
 
-  const columns = [
-    ["referencia", "Ref"],
-    ["cor", "Color"],
-    ["x", "X"],
-    ["y", "Y"],
-    ["rack", "Rack"],
-    ["acab", "Acab"],
-    ["obs", "Obs"],
-    ["marked", "Marked"]
-  ];
+  function confirmDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    onDelete(id);
+  }
 
+  /* ============================
+     RENDER
+     ============================ */
   return (
     <>
       <div className="table-wrapper">
         <table className="excel-table">
+          <colgroup>
+            {columns.map(c => (
+              <col key={c.key} style={{ width: c.width }} />
+            ))}
+            <col style={{ width: 150 }} />
+          </colgroup>
+
           <thead>
             <tr>
-              {columns.map(([key, label]) => (
-                <th key={key} style={{ width: colWidths[key] }}>
+              {columns.map((c, i) => (
+                <th key={c.key}>
                   <div className="th-inner">
-                    <span className="th-title">{label}</span>
-
-                    <span
-                      className="sort-indicator"
-                      onClick={() => handleSort(key)}
-                    >
-                      {sortIndicator(key)}
-                    </span>
-
-                    <span
-                      className="col-resizer"
-                      onMouseDown={(e) => startResize(e, key)}
-                      onDoubleClick={() => autoFitColumn(key)}
-                    />
+                    <span>{c.label}</span>
+                    {c.key !== "resume" && (
+                      <span
+                        className="sort-indicator"
+                        onClick={() => handleSort(c.key)}
+                      >
+                        {sortConfig.key === c.key
+                          ? sortConfig.direction === "asc" ? "↑" : "↓"
+                          : "↕"}
+                      </span>
+                    )}
                   </div>
+
+                  <div
+                    className="col-resizer"
+                    onMouseDown={e => startResize(e, i)}
+                    onDoubleClick={() => autoSizeColumn(i)}
+                  />
                 </th>
               ))}
-
-              <th style={{ width: colWidths.actions }}>
-                <div className="th-inner">
-                  <span>Actions</span>
-                </div>
-              </th>
+              <th className="actions-header">Actions</th>
             </tr>
           </thead>
 
-          <tbody>
-            {visibleProducts.map((p) => (
-              <tr
-                key={p.id}
-                className={p.marked ? "row-marked" : ""}
-              >
-                {editingId === p.id ? (
-                  <>
-                    {columns.map(([key]) => (
-                      <td key={key} style={{ width: colWidths[key] }}>
-                        {key === "marked" ? (
-                          <input
-                            type="checkbox"
-                            checked={!!editForm.marked}
-                            onChange={handleEditChange}
-                            name="marked"
-                          />
-                        ) : (
-                          <input
-                            name={key}
-                            value={editForm[key] ?? ""}
-                            onChange={handleEditChange}
-                            style={{ width: "100%" }}
-                          />
-                        )}
-                      </td>
-                    ))}
+         <tbody>
+  {visible.map(p => {
+    const isEditing = editingId === p.id;
 
-                    <td>
-                      <div className="action-buttons">
-                        <button onClick={saveEdit}>Save</button>
-                        <button onClick={cancelEdit}>Cancel</button>
-                      </div>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td>{p.referencia}</td>
-                    <td>{p.cor}</td>
-                    <td>{p.x}</td>
-                    <td>{p.y}</td>
-                    <td>{p.rack}</td>
-                    <td>{p.acab}</td>
-                    <td>{p.obs}</td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={!!p.marked}
-                        disabled={!canEdit}
-                        onChange={() => toggleMarked(p)}
-                      />
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        {canEdit && <button onClick={() => startEdit(p)}>Edit</button>}
-                        {canDelete && (
-                          <button
-                            onClick={() => {
-                              if (window.confirm("Delete this product?")) {
-                                onDelete(p.id);
-                              }
-                            }}
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-          </tbody>
+    return (
+      <tr key={p.id} className={p.marked ? "row-marked" : ""}>
+        {columns.map(c => (
+          <td key={c.key} className="cell-clip">
+            {c.key === "resume" ? (
+              buildResume(p)
+            ) : c.key === "marked" ? (
+              <input
+                type="checkbox"
+                checked={!!(isEditing ? editForm.marked : p.marked)}
+                disabled={!canEdit}
+                onChange={() =>
+                  isEditing
+                    ? setEditForm(f => ({ ...f, marked: !f.marked }))
+                    : toggleMarked(p)
+                }
+              />
+            ) : isEditing ? (
+              <input
+                name={c.key}
+                value={editForm[c.key] ?? ""}
+                onChange={handleChange}
+              />
+            ) : (
+              String(p[c.key] ?? "")
+            )}
+          </td>
+        ))}
+
+        <td className="actions-cell">
+          {isEditing ? (
+            <>
+              <button onClick={saveEdit}>Save</button>
+              <button onClick={cancelEdit}>Cancel</button>
+            </>
+          ) : (
+            <>
+              {canEdit && <button onClick={() => startEdit(p)}>Edit</button>}
+              {canDelete && (
+                <button onClick={() => confirmDelete(p.id)}>Delete</button>
+              )}
+            </>
+          )}
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
+
         </table>
       </div>
 
       <div className="pagination">
-        <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</button>
-        <span>Page {page} / {totalPages || 1}</span>
-        <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
+        <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+          Prev
+        </button>
+        <span>Page {page}</span>
+        <button onClick={() => setPage(p => p + 1)}>Next</button>
       </div>
     </>
   );

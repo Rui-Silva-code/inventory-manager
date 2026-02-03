@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getUsers,
   updateUserRole,
@@ -15,7 +15,13 @@ export default function AdminUsersPanel({ onClose }) {
      DATA
      ========================= */
   const [users, setUsers] = useState([]);
-  const [pendingRoles, setPendingRoles] = useState({});
+  const [search, setSearch] = useState("");
+
+  /* =========================
+     ROLE EDIT STATE
+     ========================= */
+  const [editingId, setEditingId] = useState(null);
+  const [editRole, setEditRole] = useState("");
 
   /* =========================
      CREATE USER FORM
@@ -35,6 +41,9 @@ export default function AdminUsersPanel({ onClose }) {
     setUsers(data);
   }
 
+  /* =========================
+     CREATE USER
+     ========================= */
   async function handleCreateUser(e) {
     e.preventDefault();
     await createUser(form);
@@ -42,32 +51,60 @@ export default function AdminUsersPanel({ onClose }) {
     loadUsers();
   }
 
-  function handleRoleSelect(userId, role) {
-    setPendingRoles(prev => ({ ...prev, [userId]: role }));
+  /* =========================
+     ROLE EDIT FLOW
+     ========================= */
+  function startEditRole(user) {
+    setEditingId(user.id);
+    setEditRole(user.role);
   }
 
-  async function confirmRoleChange(userId) {
-    await updateUserRole(userId, pendingRoles[userId]);
-    setPendingRoles(prev => {
-      const copy = { ...prev };
-      delete copy[userId];
-      return copy;
-    });
+  function cancelEditRole() {
+    setEditingId(null);
+    setEditRole("");
+  }
+
+  async function saveEditRole(user) {
+    await updateUserRole(user.id, editRole);
+    cancelEditRole();
     loadUsers();
   }
 
-  async function handleDelete(userId) {
-    if (!window.confirm("Delete this user?")) return;
-    await deleteUser(userId);
+  /* =========================
+     DELETE USER
+     ========================= */
+  async function handleDelete(user) {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    await deleteUser(user.id);
     loadUsers();
   }
 
+  /* =========================
+     HELPERS
+     ========================= */
   const adminCount = users.filter(u => u.role === "admin").length;
 
+  const filteredUsers = useMemo(() => {
+    return users.filter(u =>
+      u.email.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [users, search]);
+
+  function roleBadge(role) {
+    return (
+      <span className={`role-badge role-${role}`}>
+        {role}
+      </span>
+    );
+  }
+
+  /* =========================
+     RENDER
+     ========================= */
   return (
     <Modal title="Users" onClose={onClose}>
       {/* =========================
-         CREATE USER (TOP)
+         CREATE USER
          ========================= */}
       <div className="users-create">
         <h4 className="users-section-title">Create User</h4>
@@ -111,65 +148,83 @@ export default function AdminUsersPanel({ onClose }) {
       <hr className="users-divider" />
 
       {/* =========================
-         USERS TABLE
+         USERS LIST
          ========================= */}
       <div>
         <h4 className="users-section-title">Users</h4>
+
+        {/* SEARCH */}
+        <input
+          className="users-search"
+          placeholder="Search by email..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
 
         <table>
           <thead>
             <tr>
               <th>Email</th>
-              <th>Role</th>
-              <th>Confirm</th>
+              <th>Status</th>
               <th>Created</th>
-              <th>Delete</th>
+              <th className="actions-header">Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {users.map(u => {
+            {filteredUsers.map(u => {
               const isSelf = u.id === currentUser.id;
               const isLastAdmin = u.role === "admin" && adminCount === 1;
-              const pending = pendingRoles[u.id];
+              const isEditing = editingId === u.id;
 
               return (
                 <tr key={u.id}>
                   <td>{u.email}</td>
 
                   <td>
-                    <select
-                      disabled={isSelf}
-                      value={pending ?? u.role}
-                      onChange={e =>
-                        handleRoleSelect(u.id, e.target.value)
-                      }
-                    >
-                      <option value="viewer">Viewer</option>
-                      <option value="editor">Editor</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-
-                  <td>
-                    {!isSelf && pending && pending !== u.role && (
-                      <button onClick={() => confirmRoleChange(u.id)}>
-                        Confirm
-                      </button>
+                    {isEditing ? (
+                      <select
+                        value={editRole}
+                        onChange={e => setEditRole(e.target.value)}
+                        disabled={isSelf}
+                      >
+                        <option value="viewer">Viewer</option>
+                        <option value="editor">Editor</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    ) : (
+                      roleBadge(u.role)
                     )}
                   </td>
 
-                  <td>
-                    {new Date(u.created_at).toLocaleString()}
-                  </td>
+                  <td>{new Date(u.created_at).toLocaleString()}</td>
 
-                  <td>
-                    <button
-                      disabled={isSelf || isLastAdmin}
-                      onClick={() => handleDelete(u.id)}
-                    >
-                      Delete
-                    </button>
+                  <td className="actions-cell">
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={() => saveEditRole(u)}
+                          disabled={isSelf}
+                        >
+                          Save
+                        </button>
+                        <button onClick={cancelEditRole}>
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => startEditRole(u)}>
+                          Edit
+                        </button>
+                        <button
+                          disabled={isSelf || isLastAdmin}
+                          onClick={() => handleDelete(u)}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               );

@@ -18,7 +18,10 @@ const FIELDS = [
 export default function AuditLogPanel({ onClose }) {
   const [logs, setLogs] = useState([]);
   const [expanded, setExpanded] = useState(new Set());
-  const [selectedDate, setSelectedDate] = useState("");
+
+  const [calendarDate, setCalendarDate] = useState("");
+  const [typedDate, setTypedDate] = useState("");
+
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -38,10 +41,48 @@ export default function AuditLogPanel({ onClose }) {
     });
   }
 
-  function sameDay(dateStr, filter) {
-    if (!filter) return true;
+  /* =========================================================
+     SMART DATE MATCHING (PROGRESSIVE)
+     ========================================================= */
+  function matchesTypedDate(dateStr) {
+    if (!typedDate) return true;
+
+    const parts = typedDate.split("-").filter(Boolean);
+    if (!parts.length) return true;
+
     const d = new Date(dateStr);
-    const f = new Date(filter);
+    const day = d.getDate();
+    const month = d.getMonth() + 1;
+    const year = d.getFullYear();
+
+    if (parts.length === 1) {
+      return day === Number(parts[0]);
+    }
+
+    if (parts.length === 2) {
+      return (
+        day === Number(parts[0]) &&
+        month === Number(parts[1])
+      );
+    }
+
+    if (parts.length >= 3) {
+      return (
+        day === Number(parts[0]) &&
+        month === Number(parts[1]) &&
+        year === Number(parts[2])
+      );
+    }
+
+    return true;
+  }
+
+  function matchesCalendarDate(dateStr) {
+    if (!calendarDate) return true;
+
+    const d = new Date(dateStr);
+    const f = new Date(calendarDate);
+
     return (
       d.getFullYear() === f.getFullYear() &&
       d.getMonth() === f.getMonth() &&
@@ -49,10 +90,14 @@ export default function AuditLogPanel({ onClose }) {
     );
   }
 
-  const filteredLogs = useMemo(
-    () => logs.filter(l => sameDay(l.created_at, selectedDate)),
-    [logs, selectedDate]
-  );
+  const filteredLogs = useMemo(() => {
+    setPage(1);
+
+    return logs.filter(log =>
+      matchesCalendarDate(log.created_at) &&
+      matchesTypedDate(log.created_at)
+    );
+  }, [logs, calendarDate, typedDate]);
 
   const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE);
 
@@ -61,10 +106,10 @@ export default function AuditLogPanel({ onClose }) {
     return filteredLogs.slice(start, start + PAGE_SIZE);
   }, [filteredLogs, page]);
 
-  function actionClass(action) {
-    if (action === "CREATE") return "audit-create";
-    if (action === "UPDATE") return "audit-update";
-    if (action === "DELETE") return "audit-delete";
+  function rowClass(action) {
+    if (action === "CREATE") return "audit-row-create";
+    if (action === "UPDATE") return "audit-row-update";
+    if (action === "DELETE") return "audit-row-delete";
     return "";
   }
 
@@ -74,23 +119,39 @@ export default function AuditLogPanel({ onClose }) {
 
   return (
     <Modal title="Audit Log" onClose={onClose}>
-      {/* DATE FILTER */}
-      <div style={{ marginBottom: 12 }}>
+      {/* =========================
+         FILTERS
+         ========================= */}
+      <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
         <label>
-          Day
+          Calendar
           <input
             type="date"
-            className="audit-date"
-            value={selectedDate}
+            value={calendarDate}
             onChange={e => {
-              setSelectedDate(e.target.value);
-              setPage(1);
+              setCalendarDate(e.target.value);
+              setTypedDate("");
+            }}
+          />
+        </label>
+
+        <label>
+          Date (DD-MM-YYYY)
+          <input
+            type="text"
+            placeholder="DD-MM-YYYY"
+            value={typedDate}
+            onChange={e => {
+              setTypedDate(e.target.value);
+              setCalendarDate("");
             }}
           />
         </label>
       </div>
 
-      {/* TABLE SCROLL CONTAINER */}
+      {/* =========================
+         TABLE
+         ========================= */}
       <div className="audit-table-wrapper">
         <table>
           <thead>
@@ -115,13 +176,14 @@ export default function AuditLogPanel({ onClose }) {
 
               return (
                 <>
-                  <tr key={log.id}>
+                  <tr
+                    key={log.id}
+                    className={rowClass(log.action)}
+                  >
                     <td>{new Date(log.created_at).toLocaleString()}</td>
                     <td>{log.user_email}</td>
                     <td>{log.user_role}</td>
-                    <td className={actionClass(log.action)}>
-                      {log.action}
-                    </td>
+                    <td>{log.action}</td>
                     <td>{snapshot.referencia}</td>
                     <td>{snapshot.x}</td>
                     <td>{snapshot.y}</td>
@@ -133,7 +195,7 @@ export default function AuditLogPanel({ onClose }) {
                   </tr>
 
                   {isOpen && (
-                    <tr>
+                    <tr className={rowClass(log.action)}>
                       <td colSpan={8}>
                         <table width="100%">
                           <thead>
@@ -179,7 +241,9 @@ export default function AuditLogPanel({ onClose }) {
         </table>
       </div>
 
-      {/* PAGINATION */}
+      {/* =========================
+         PAGINATION
+         ========================= */}
       <div className="pagination">
         <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
           Prev

@@ -173,3 +173,127 @@ tbody td:last-child {
   top: 0;
   z-index: 1;
 }
+
+/* LOCK TABLE GEOMETRY */
+.excel-table {
+  width: 100%;
+  table-layout: fixed; /* 🔥 KEY FIX */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+
+/* EDIT MODE MUST NOT EXPAND */
+.excel-table td input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ======================================
+   COLUMN CLIP / ELLIPSIS
+   ====================================== */
+.cell-clip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ======================================
+   ACTIONS COLUMN SPACING
+   ====================================== */
+.actions-header {
+  padding-left: 16px;
+}
+
+.actions-cell {
+  padding: 6px 12px;
+  display: flex;
+  gap: 8px;
+}
+
+/* ======================================
+   RESIZER UX
+   ====================================== */
+.col-resizer {
+  position: absolute;
+  right: -4px;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.col-resizer:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* =========================
+   USERS TABLE IMPROVEMENTS
+   ========================= */
+
+.users-search {
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  max-width: 280px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+}
+
+/* Role badges */
+.role-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.role-admin {
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.role-editor {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.role-viewer {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Actions spacing */
+.actions-header {
+  padding-left: 16px;
+}
+
+.actions-cell {
+  padding: 6px 12px;
+  display: flex;
+  gap: 8px;
+}
+
+/* =========================
+   AUDIT ROW COLORS (FULL ROW)
+   ========================= */
+
+.audit-row-create {
+  background-color: rgba(34, 197, 94, 0.15); /* green */
+}
+
+.audit-row-update {
+  background-color: rgba(234, 179, 8, 0.18); /* yellow */
+}
+
+.audit-row-delete {
+  background-color: rgba(220, 38, 38, 0.18); /* red */
+}
+
+/* Keep readability */
+.audit-row-create td,
+.audit-row-update td,
+.audit-row-delete td {
+  font-weight: 500;
+}
