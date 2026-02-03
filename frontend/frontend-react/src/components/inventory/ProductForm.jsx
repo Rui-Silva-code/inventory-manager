@@ -45,65 +45,67 @@ export default function ProductForm({ onAdd, canEdit }) {
 
   return (
     <form onSubmit={handleSubmit} className="form-grid">
-      {/* Reference */}
-      <label>
-        Reference
-        <input
-          name="referencia"
-          value={form.referencia}
-          onChange={handleChange}
-          required
-        />
-      </label>
 
-      {/* Color */}
-      <label>
-        Color
-        <input
-          name="cor"
-          value={form.cor}
-          onChange={handleChange}
-          required
-        />
-      </label>
-
-      {/* X / Y compact row */}
-      <div className="form-row">
+      {/* Top 50 / 50 */}
+      <div className="form-half">
         <label>
-          X
+          Reference
           <input
-            type="number"
-            name="x"
-            value={form.x}
+            name="referencia"
+            value={form.referencia}
             onChange={handleChange}
             required
           />
         </label>
 
         <label>
-          Y
+          Color
           <input
-            type="number"
-            name="y"
-            value={form.y}
+            name="cor"
+            value={form.cor}
             onChange={handleChange}
             required
           />
         </label>
       </div>
 
-      {/* Rack */}
-      <label>
-        Rack
-        <input
-          name="rack"
-          value={form.rack}
-          onChange={handleChange}
-        />
-      </label>
+      <div className="form-half">
+        <div className="form-row">
+          <label>
+            X
+            <input
+              type="number"
+              name="x"
+              value={form.x}
+              onChange={handleChange}
+              required
+            />
+          </label>
 
-      {/* Acab */}
-      <label>
+          <label>
+            Y
+            <input
+              type="number"
+              name="y"
+              value={form.y}
+              onChange={handleChange}
+              required
+            />
+          </label>
+        </div>
+
+        <label>
+          Rack
+          <input
+            name="rack"
+            value={form.rack}
+            onChange={handleChange}
+          />
+        </label>
+      </div>
+
+      {/* Full width */}
+      <label className="full">
         Acab
         <input
           name="acab"
@@ -112,7 +114,6 @@ export default function ProductForm({ onAdd, canEdit }) {
         />
       </label>
 
-      {/* Obs */}
       <label className="full">
         Obs
         <input
@@ -122,20 +123,22 @@ export default function ProductForm({ onAdd, canEdit }) {
         />
       </label>
 
-      {/* Marked + Submit */}
-      <div className="form-footer">
-        <label className="checkbox">
-           Marked
-          <input
-            type="checkbox"
-            name="marked"
-            checked={form.marked}
-            onChange={handleChange}
-          />
-        </label>
+      {/* Footer */}
+       <div className="form-footer form-footer-stacked">
+  <div className="checkbox-inline">
+    <input
+      type="checkbox"
+      className="checkbox-input"
+      name="marked"
+      checked={form.marked}
+      onChange={handleChange}
+    />
+    <span className="checkbox-text">Marked</span>
+  </div>
 
-        <button type="submit">Create</button>
-      </div>
+  <button type="submit">Create</button>
+</div>
+
     </form>
   );
 }

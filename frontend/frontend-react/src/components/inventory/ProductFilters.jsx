@@ -1,10 +1,10 @@
 export default function ProductFilters({ filters, setFilters }) {
   function handleChange(e) {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
 
     setFilters({
       ...filters,
-      [name]: type === "checkbox" ? checked : value
+      [name]: value
     });
   }
 
@@ -22,6 +22,8 @@ export default function ProductFilters({ filters, setFilters }) {
 
   return (
     <div className="form-grid">
+
+      {/* Row 1 */}
       <label>
         Reference
         <input
@@ -40,16 +42,8 @@ export default function ProductFilters({ filters, setFilters }) {
         />
       </label>
 
-      <label>
-        Rack
-        <input
-          name="rack"
-          value={filters.rack}
-          onChange={handleChange}
-        />
-      </label>
-
-      <label>
+      {/* Row 2 */}
+      <label className="full">
         Acab
         <input
           name="acab"
@@ -58,29 +52,48 @@ export default function ProductFilters({ filters, setFilters }) {
         />
       </label>
 
-      <label>
-        Min X
-        <input
-          type="number"
-          name="x"
-          value={filters.x}
-          onChange={handleChange}
-        />
-      </label>
+      {/* Row 3 */}
+      <div className="form-row full">
+        <label>
+          Min X
+          <input
+            type="number"
+            name="x"
+            value={filters.x}
+            onChange={handleChange}
+          />
+        </label>
 
-      <label>
-        Min Y
-        <input
-          type="number"
-          name="y"
-          value={filters.y}
-          onChange={handleChange}
-        />
-      </label>
+        <label>
+          Min Y
+          <input
+            type="number"
+            name="y"
+            value={filters.y}
+            onChange={handleChange}
+          />
+        </label>
+
+        <label>
+          Rack
+          <input
+            name="rack"
+            value={filters.rack}
+            onChange={handleChange}
+          />
+        </label>
+      </div>
 
       <div className="form-footer">
-        <button onClick={clearFilters}>Clear filters</button>
-      </div>
+  <button
+    type="button"
+    className="primary-action"
+    onClick={clearFilters}
+  >
+    Clear filters
+  </button>
+</div>
+
     </div>
   );
 }

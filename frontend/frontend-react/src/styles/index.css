@@ -232,8 +232,8 @@ td:last-child {
 }
 
 .modal-window {
-  height: 500px;          /* ✅ SAME SIZE FOR ALL MODALS */ 
-  width: 900px;          /* ✅ SAME SIZE FOR ALL MODALS */
+  height: 600px;          /* ✅ SAME SIZE FOR ALL MODALS */ 
+  width: 1100px;          /* ✅ SAME SIZE FOR ALL MODALS */
   max-width: 95vw;       /* safety for small screens */
   max-height: 85vh;
   background: white;

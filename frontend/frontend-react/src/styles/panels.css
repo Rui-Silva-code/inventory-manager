@@ -1,14 +1,18 @@
 /* =========================================================
-   FORM LAYOUTS (RESPONSIVE)
+   FORM LAYOUTS
    ========================================================= */
 
 .panel.add-product,
 .panel.filters {
   max-width: 720px;
+  border: 1px solid rgb(119, 129, 212);
+  margin: 0 auto 20px auto;
+  border-radius: 8px;
+  padding: 16px 24px 24px 24px;
 }
 
 .panel-title {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   text-align: center;
   font-size: 16px;
   font-weight: 600;
@@ -17,70 +21,118 @@
 /* Base grid */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
 }
 
 .form-grid label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-.form-grid input,
-.form-grid select {
-  padding: 8px 10px;
-  border-radius: 6px;
+.form-grid input {
+  padding: 6px 8px;
+  border-radius: 25px;
   border: 1px solid var(--border-light);
 }
 
-/* X / Y fix */
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+/* 50 / 50 top blocks */
+.form-half {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.form-grid .full {
+/* Rows */
+.form-row {
+  display: grid;
+  gap: 5px;
+}
+
+.form-row.full {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.form-row:not(.full) {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Full width */
+.full {
   grid-column: 1 / -1;
+}
+
+/* Footer */
+.form-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* Checkbox inline */
+.checkbox-inline {
+  display: inline-flex;          /* inline + flex */
+  align-items: center;           /* vertical center */
+  gap: 8px;                      /* space between checkbox and text */
+  padding: 6px 12px;
+}
+
+.checkbox-input {
+  width: 16px;
+  height: 16px;
+  margin: 0;                     /* kill browser defaults */
+  cursor: pointer;
+}
+/* Override form label column layout for inline checkboxes */
+.form-grid label.checkbox-inline {
+  flex-direction: row;       /* 🔥 THIS is the missing piece */
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-text {
+  cursor: default;
+  user-select: none;
+}
+
+
+/* Primary rounded action button (Create / Clear filters) */
+button[type="submit"],
+.primary-action {
+  padding: 8px 16px;
+  border-radius: 25px;
+  border: none;
+  background-color: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .form-footer {
   grid-column: 1 / -1;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
-/* USERS MODAL */
-.users-layout {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 24px;
-}
-
-.users-form {
-  display: flex;
+/* Stacked footer (Add Product only) */
+.form-footer-stacked {
   flex-direction: column;
+  align-items: flex-start;
   gap: 12px;
 }
 
-.users-form input,
-.users-form select {
-  max-width: 260px;
-}
-
-/* AUDIT */
-.audit-date {
-  margin-left: 8px;
-  padding: 8px 12px;
-  font-size: 16px;
-  min-width: 220px;
-}
 
 /* MOBILE */
 @media (max-width: 768px) {
-  .form-grid,
-  .users-layout {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row.full {
     grid-template-columns: 1fr;
   }
 }
