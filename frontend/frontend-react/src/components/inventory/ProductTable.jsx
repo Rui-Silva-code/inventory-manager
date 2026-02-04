@@ -93,7 +93,7 @@ export default function ProductTable({
   function handleSort(key) {
     if (key === "resume") return;
 
-    setSortConfig(prev => {
+    setSortConfig(prev => { // TODO: Wrap event handlers with useCallback to avoid re-renders on child components
       if (prev.key !== key) return { key, direction: "asc" };
       if (prev.direction === "asc") return { key, direction: "desc" };
       return { key: null, direction: null };

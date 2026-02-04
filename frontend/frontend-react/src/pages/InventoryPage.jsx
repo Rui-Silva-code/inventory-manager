@@ -75,7 +75,7 @@ export default function InventoryPage() {
   /* =========================
      CRUD
      ========================= */
-  async function handleAdd(product) {
+  async function handleAdd(product) { // TODO: Load only new product instead of all
     await createProduct(product);
     loadProducts();
   }
