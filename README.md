@@ -271,6 +271,8 @@ AI was used to:
 
 All implementation choices and iterations were human-driven.
 
+---
+
 ### 📈 Future Implementation / Features
 
 - Bulk actions:
@@ -300,6 +302,8 @@ All implementation choices and iterations were human-driven.
   - Production build
   - Environment configuration
   - Reverse proxy setup
+
+---
 
   ### 🏢 Multi-User / Multi-Tenant Considerations
 
